@@ -2,7 +2,7 @@
 
 /*
  * Coypright (C) 2016-2017 Franco Fichtner <franco@opnsense.org>
- * Copyright (C) 2008 Shrew Soft Inc
+ * Copyright (C) 2008 Shrew Soft Inc. <mgrooms@shrew.net>
  * Copyright (C) 2008 Ermal Luçi
  * Copyright (C) 2004 Scott Ullrich <sullrich@gmail.com>
  * Copyright (C) 2003-2004 Manuel Kasper <mk@neon1.net>
@@ -308,7 +308,7 @@ function if_pppoe_interfaces()
 
     if (isset($config['pppoes']['pppoe'])) {
         $pppoeifs = array('networks' => array());
-        foreach($config['pppoes']['pppoe'] as $pppoe) {
+        foreach ($config['pppoes']['pppoe'] as $pppoe) {
             if ($pppoe['mode'] == "server") {
                 $mask = !empty($pppoe['pppoe_subnet']) ?  $pppoe['pppoe_subnet'] : 32;
                 $pppoeifs['networks'][] = array("network" => gen_subnet($pppoe['remoteip'], $mask), "mask" => $mask);

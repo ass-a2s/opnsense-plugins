@@ -1,0 +1,47 @@
+<model>
+    <mount>//OPNsense/wireguard/client</mount>
+    <description>Wireguard Client configuration</description>
+    <version>0.0.4</version>
+    <items>
+        <clients>
+            <client type="ArrayField">
+                <enabled type="BooleanField">
+                    <default>1</default>
+                    <Required>Y</Required>
+                </enabled>
+                <name type="TextField">
+                    <default></default>
+                    <Required>Y</Required>
+                    <mask>/^([0-9a-zA-Z]){1,32}$/u</mask>
+                    <ValidationMessage>Should be a string between 1 and 32 characters. Allowed characters are 0-9a-zA-Z</ValidationMessage>
+                </name>
+                <pubkey type="TextField">
+                    <Required>N</Required>
+                </pubkey>
+                <psk type="TextField">
+                    <Required>N</Required>
+                    <mask>/^[a-zA-Z0-9+\/]{43}=$/</mask>
+                    <ValidationMessage>Should be a base64-encoded 32 byte string.</ValidationMessage>
+                </psk>
+                <tunneladdress type="NetworkField">
+                    <default></default>
+                    <FieldSeparator>,</FieldSeparator>
+                    <Required>Y</Required>
+                    <asList>Y</asList>
+                </tunneladdress>
+                <serveraddress type="HostnameField">
+                    <Required>N</Required>
+                </serveraddress>
+                <serverport type="PortField">
+                    <Required>N</Required>
+                </serverport>
+                <keepalive type="IntegerField">
+                    <MinimumValue>1</MinimumValue>
+                    <MaximumValue>86400</MaximumValue>
+                    <ValidationMessage>Please specify a value between 1 and 86400.</ValidationMessage>
+                    <Required>N</Required>
+                </keepalive>
+            </client>
+        </clients>
+    </items>
+</model>

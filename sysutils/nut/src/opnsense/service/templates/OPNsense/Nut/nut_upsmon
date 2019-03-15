@@ -1,0 +1,5 @@
+{% if helpers.exists('OPNsense.Nut.general.enable') and OPNsense.Nut.general.enable == '1' %}
+nut_upsmon_enable="YES"
+{% else %}
+nut_upsmon_enable="NO"
+{% endif %}

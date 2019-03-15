@@ -1,0 +1,99 @@
+<form>
+    <field>
+        <id>general.enabled</id>
+        <label>Enable BIND Daemon</label>
+        <type>checkbox</type>
+        <help>This will activate the BIND daemon.</help>
+    </field>
+    <field>
+        <id>general.listenv4</id>
+        <label>Listen IPs</label>
+        <style>tokenize</style>
+        <type>select_multiple</type>
+        <allownew>true</allownew>
+        <help>Set the IPv4 addresses the service should listen to.</help>
+    </field>
+    <field>
+        <id>general.listenv6</id>
+        <label>Listen IPv6</label>
+        <style>tokenize</style>
+        <type>select_multiple</type>
+        <allownew>true</allownew>
+        <help>Set the IPv6 addresses the service should listen to.</help>
+    </field>
+    <field>
+        <id>general.port</id>
+        <label>Listen Port</label>
+        <type>text</type>
+        <help>Set the port the service should listen to.</help>
+    </field>
+    <field>
+        <id>general.forwarders</id>
+        <label>DNS Forwarders</label>
+        <style>tokenize</style>
+        <type>select_multiple</type>
+        <allownew>true</allownew>
+        <help>Set one or more hosts to send your DNS queries if the request is unknown.</help>
+    </field>
+    <field>
+        <id>general.logsize</id>
+        <label>Logsize in MB</label>
+        <type>text</type>
+        <help>Set the amount how big a logfile can growth.</help>
+    </field>
+    <field>
+        <id>general.maxcachesize</id>
+        <label>Maximum Cache Size</label>
+        <type>text</type>
+        <help>How much memory in percent the cache can use from the system. Default is 80%.</help>
+    </field>
+    <field>
+        <id>general.recursion</id>
+        <label>Recursion</label>
+        <type>dropdown</type>
+        <help>Define an ACL where you allow which clients can resolve via this service. Usually use your local LAN.</help>
+    </field>
+    <field>
+        <id>general.dnssecvalidation</id>
+        <label>DNSSEC Validation</label>
+        <type>dropdown</type>
+        <help>Default is "No". Set to "Auto" to use the static trust anchor configuration by the system.</help>
+    </field>
+    <field>
+        <id>general.hidehostname</id>
+        <label>Hide Hostname</label>
+        <type>checkbox</type>
+        <advanced>true</advanced>
+        <help>This will hide the system hostname for DNS queries.</help>
+    </field>
+    <field>
+        <id>general.hideversion</id>
+        <label>Hide Version</label>
+        <type>checkbox</type>
+        <advanced>true</advanced>
+        <help>This will hide the local BIND version in DNS queries.</help>
+    </field>
+    <field>
+        <id>general.enableratelimiting</id>
+        <label>Enable Rate Limiting</label>
+        <type>checkbox</type>
+        <advanced>true</advanced>
+        <help>This will enable rate-limiting for DNS replies.</help>
+    </field>
+    <field>
+        <id>general.ratelimitcount</id>
+        <label>Rate Limit Replies</label>
+        <type>text</type>
+        <advanced>true</advanced>
+        <help>Set how many replies per second are allowed.</help>
+    </field>
+    <field>
+        <id>general.ratelimitexcept</id>
+        <label>Rate Limit Exceptions</label>
+        <style>tokenize</style>
+        <type>select_multiple</type>
+        <allownew>true</allownew>
+        <advanced>true</advanced>
+        <help>Except a list of IPs from rate-limiting like ::1</help>
+    </field>
+</form>

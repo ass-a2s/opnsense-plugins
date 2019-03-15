@@ -4,9 +4,18 @@ if [ -f /etc/rc.conf.d/haproxy ]; then
 . /etc/rc.conf.d/haproxy
 fi
 
+rcprefix=
+
 case "$1" in
-stop|restart)
+stop)
     if [ "${haproxy_hardstop}" == "YES" ]; then
+        rcprefix="hard"
+    fi
+    ;;
+reload)
+    if [ "${haproxy_softreload}" == "YES" ]; then
+        rcprefix="soft"
+    elif [ "${haproxy_hardstop}" == "YES" ]; then
         rcprefix="hard"
     fi
     ;;

@@ -45,7 +45,7 @@ class AcmeClient extends BaseModel
      */
     public function getByCertificateID($certificateid)
     {
-        foreach ($this->certificates->certificate->__items as $certificate) {
+        foreach ($this->certificates->certificate->iterateItems() as $certificate) {
             if ((string)$certificateid === (string)$certificate->certificateid) {
                 return $certificate;
             }
@@ -62,7 +62,7 @@ class AcmeClient extends BaseModel
     {
         if ((string)$this->settings->enabled === "1") {
             if ($checkCertificates === true) {
-                foreach ($this->certificates->certificate->__items as $certificate) {
+                foreach ($this->certificates->certificate->iterateItems() as $certificate) {
                     if ((string)$certificate->enabled == "1") {
                         return true; // Found a active certificate
                     }
@@ -75,13 +75,13 @@ class AcmeClient extends BaseModel
     }
 
     /**
-     * retrieve restart action by number
+     * retrieve automation by number
      * @param $uuid action number
      * @return null|BaseField action details
      */
     public function getByActionID($uuid)
     {
-        foreach ($this->actions->action->__items as $action) {
+        foreach ($this->actions->action->iterateItems() as $action) {
             if ((string)$uuid === (string)$action->getAttributes()["uuid"]) {
                 return $action;
             }

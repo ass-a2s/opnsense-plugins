@@ -1,31 +1,31 @@
 <?php
 
 /*
-    Copyright (C) 2014-2015 Deciso B.V.
-    Copyright (C) 2008 Ermal Luçi
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    1. Redistributions of source code must retain the above copyright notice,
-       this list of conditions and the following disclaimer.
-
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-
-    THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
-    INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-    AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-    AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
-    OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (C) 2014-2015 Deciso B.V.
+ * Copyright (C) 2008 Ermal Luçi
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 require_once("guiconfig.inc");
 require_once("interfaces.inc");
@@ -72,7 +72,7 @@ $main_buttons = array(
 
 ?>
 <body>
-  <script type="text/javascript">
+  <script>
   $( document ).ready(function() {
     // delete service action
     $(".act_delete_service").click(function(event){
@@ -120,12 +120,12 @@ $main_buttons = array(
                 <table class="table table-striped">
                   <thead>
                     <tr>
-                      <th><?=gettext("If");?></th>
+                      <th><?=gettext("Interface");?></th>
                       <th><?=gettext("Server");?></th>
                       <th><?=gettext("Hostname");?></th>
                       <th><?=gettext("Cached IP");?></th>
                       <th><?=gettext("Description");?></th>
-                      <th></th>
+                      <th class"text-nowrap"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -134,8 +134,8 @@ $main_buttons = array(
                     foreach ($a_rfc2136 as $rfc2136): ?>
                     <tr>
                       <td>
-                        <a href="#" class="act_toggle" data-id="<?=$i;?>" data-toggle="tooltip" title="<?=(!empty($rfc2136['enable'])) ? gettext("disable") : gettext("enable");?>">
-                          <span class="glyphicon glyphicon-play <?=(!empty($rfc2136['enable'])) ? "text-success" : "text-muted";?>"></span>
+                        <a href="#" class="act_toggle" data-id="<?=$i;?>" data-toggle="tooltip" title="<?=(!empty($rfc2136['enable'])) ? gettext("Disable") : gettext("Enable");?>">
+                          <i class="fa fa-play fa-fw <?=(!empty($rfc2136['enable'])) ? "text-success" : "text-muted";?>"></i>
                         </a>
                         <?=!empty($config['interfaces'][$rfc2136['interface']]['descr']) ? $config['interfaces'][$rfc2136['interface']]['descr'] : strtoupper($rfc2136['interface']);?>
                       </td>
@@ -186,11 +186,9 @@ $main_buttons = array(
                         }?>
                       </td>
                       <td><?=$rfc2136['descr'];?></td>
-                      <td>
-                        <a href="services_rfc2136_edit.php?id=<?=$i;?>">
-                          <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
-                        </a>
-                        <a href="#" data-id="<?=$i;?>" class="act_delete_service"><button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash text-muted"></span></button></a>
+                      <td class="text-nowrap">
+                        <a href="services_rfc2136_edit.php?id=<?=$i;?>" class="btn btn-xs btn-default"><i class="fa fa-pencil fa-fw"></i></a>
+                        <a href="#" data-id="<?=$i;?>" class="act_delete_service btn btn-xs btn-default"><i class="fa fa-trash fa-fw"></i></a>
                       </td>
                     </tr>
 <?php

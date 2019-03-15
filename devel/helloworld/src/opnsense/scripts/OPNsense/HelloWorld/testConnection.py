@@ -1,7 +1,7 @@
 #!/usr/local/bin/python2.7
 
 """
-    Copyright (c) 2015 Ad Schellevis
+    Copyright (c) 2015 Ad Schellevis <ad@opnsense.org>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ if os.path.exists(hello_world_config):
             result['message'] = 'test ok!'
         except smtplib.SMTPException as error:
             # unable to send mail
-            result['message'] = '%s'%error
+            result['message'] = '%s' % error
         except socket.error as error:
             # connect error
             if error.strerror is None:

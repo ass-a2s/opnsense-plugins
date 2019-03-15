@@ -1,31 +1,31 @@
 <?php
 
 /*
-    Copyright (C) 2014-2016 Deciso B.V.
-    Copyright (C) 2004-2012 Scott Ullrich <sullrich@gmail.com>
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    1. Redistributions of source code must retain the above copyright notice,
-       this list of conditions and the following disclaimer.
-
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-
-    THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
-    INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-    AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-    AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
-    OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (C) 2014-2016 Deciso B.V.
+ * Copyright (C) 2004-2012 Scott Ullrich <sullrich@gmail.com>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 require_once("guiconfig.inc");
 require_once("interfaces.inc");
@@ -34,7 +34,8 @@ require_once("filter.inc");
 require_once("system.inc");
 require_once("plugins.inc.d/miniupnpd.inc");
 
-function upnp_validate_ip($ip) {
+function miniupnpd_validate_ip($ip)
+{
     /* validate cidr */
     $ip_array = array();
     $ip_array = explode('/', $ip);
@@ -50,15 +51,18 @@ function upnp_validate_ip($ip) {
     if (!is_ipaddr($ip_array[0])) {
         return false;
     }
+
     return true;
 }
 
-function upnp_validate_port($port) {
+function miniupnpd_validate_port($port)
+{
     foreach (explode('-', $port) as $sub) {
         if ($sub < 0 || $sub > 65535 || !is_numeric($sub)) {
             return false;
         }
     }
+
     return true;
 }
 
@@ -66,8 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $pconfig = array();
 
     $copy_fields = array('enable', 'enable_upnp', 'enable_natpmp', 'ext_iface', 'iface_array', 'download',
-                         'upload', 'overridewanip', 'logpackets', 'sysuptime', 'permdefault', 'permuser1',
-                         'permuser2', 'permuser3', 'permuser4');
+                         'upload', 'overridewanip', 'logpackets', 'sysuptime', 'permdefault');
+
+    foreach (miniupnpd_permuser_list() as $permuser) {
+        $copy_fields[] = $permuser;
+    }
 
     foreach ($copy_fields as $fieldname) {
         if (isset($config['installedpackages']['miniupnpd']['config'][0][$fieldname])) {
@@ -109,9 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     /* user permissions validation */
-    for($i=1; $i<=4; $i++) {
-        if (!empty($pconfig["permuser{$i}"])) {
-            $perm = explode(' ',$pconfig["permuser{$i}"]);
+    foreach (miniupnpd_permuser_list() as $i => $permuser) {
+        if (!empty($pconfig[$permuser])) {
+            $perm = explode(' ', $pconfig[$permuser]);
             /* should explode to 4 args */
             if (count($perm) != 4) {
                 $input_errors[] = sprintf(gettext("You must follow the specified format in the 'User specified permissions %s' field"), $i);
@@ -121,11 +128,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $input_errors[] = sprintf(gettext("You must begin with allow or deny in the 'User specified permissions %s' field"), $i);
               }
               /* verify port or port range */
-              if (!upnp_validate_port($perm[1]) || !upnp_validate_port($perm[3])) {
+              if (!miniupnpd_validate_port($perm[1]) || !miniupnpd_validate_port($perm[3])) {
                   $input_errors[] = sprintf(gettext("You must specify a port or port range between 0 and 65535 in the 'User specified permissions %s' field"), $i);
               }
               /* verify ip address */
-              if (!upnp_validate_ip($perm[2])) {
+              if (!miniupnpd_validate_ip($perm[2])) {
                   $input_errors[] = sprintf(gettext("You must specify a valid ip address in the 'User specified permissions %s' field"), $i);
               }
             }
@@ -140,8 +147,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $upnp[$fieldname] = !empty($pconfig[$fieldname]);
         }
         // text field types
-        foreach (array('ext_iface', 'download', 'upload', 'overridewanip', 'permuser1',
-                       'permuser2', 'permuser3', 'permuser4') as $fieldname) {
+        foreach (array('ext_iface', 'download', 'upload', 'overridewanip') as $fieldname) {
+            $upnp[$fieldname] = $pconfig[$fieldname];
+        }
+        foreach (miniupnpd_permuser_list() as $fieldname) {
             $upnp[$fieldname] = $pconfig[$fieldname];
         }
         // array types
@@ -175,12 +184,12 @@ include("head.inc");
                 <table class="table table-striped opnsense_standard_table_form">
                   <thead>
                     <tr>
-                      <td width="22%">
+                      <td style="width:22%">
                         <strong><?=gettext("UPnP and NAT-PMP Settings");?></strong>
                       </td>
-                      <td width="78%" align="right">
+                      <td style="width:78%; text-align:right">
                         <small><?=gettext("full help"); ?> </small>
-                        <i class="fa fa-toggle-off text-danger"  style="cursor: pointer;" id="show_all_help_page" type="button"></i>
+                        <i class="fa fa-toggle-off text-danger"  style="cursor: pointer;" id="show_all_help_page"></i>
                         &nbsp;&nbsp;
                       </td>
                     </tr>
@@ -196,7 +205,7 @@ include("head.inc");
                       <td><a id="help_for_enable_upnp" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Allow UPnP Port Mapping");?></td>
                       <td>
                        <input name="enable_upnp" type="checkbox" value="yes" <?=!empty($pconfig['enable_upnp']) ? "checked=\"checked\"" : ""; ?> />
-                       <div class="hidden" for="help_for_enable_upnp">
+                       <div class="hidden" data-for="help_for_enable_upnp">
                          <?=gettext("This protocol is often used by Microsoft-compatible systems.");?>
                        </div>
                       </td>
@@ -205,7 +214,7 @@ include("head.inc");
                       <td><a id="help_for_enable_natpmp" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Allow NAT-PMP Port Mapping");?></td>
                       <td>
                        <input name="enable_natpmp" type="checkbox" value="yes" <?=!empty($pconfig['enable_natpmp']) ? "checked=\"checked\"" : ""; ?> />
-                       <div class="hidden" for="help_for_enable_natpmp">
+                       <div class="hidden" data-for="help_for_enable_natpmp">
                          <?=gettext("This protocol is often used by Apple-compatible systems.");?>
                        </div>
                       </td>
@@ -222,7 +231,7 @@ include("head.inc");
 <?php
                         endforeach;?>
                        </select>
-                       <div class="hidden" for="help_for_ext_iface">
+                       <div class="hidden" data-for="help_for_ext_iface">
                          <?=gettext("Select only your primary WAN interface (interface with your default route). Only one interface is allowed here, not multiple.");?>
                        </div>
                       </td>
@@ -242,7 +251,7 @@ include("head.inc");
 <?php
                         endforeach;?>
                        </select>
-                       <div class="hidden" for="help_for_ext_iface">
+                       <div class="hidden" data-for="help_for_ext_iface">
                          <?=gettext("You can select multiple interfaces here.");?>
                        </div>
                       </td>
@@ -251,7 +260,7 @@ include("head.inc");
                       <td><a id="help_for_download" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Maximum Download Speed");?></td>
                       <td>
                         <input name="download" type="text" value="<?=$pconfig['download'];?>" />
-                        <div class="hidden" for="help_for_download">
+                        <div class="hidden" data-for="help_for_download">
                           <?=gettext("(Kbits/second)");?>
                         </div>
                       </td>
@@ -260,7 +269,7 @@ include("head.inc");
                       <td><a id="help_for_upload" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Maximum Upload Speed");?></td>
                       <td>
                         <input name="upload" type="text" value="<?=$pconfig['upload'];?>" />
-                        <div class="hidden" for="help_for_upload">
+                        <div class="hidden" data-for="help_for_upload">
                           <?=gettext("(Kbits/second)");?>
                         </div>
                       </td>
@@ -275,7 +284,7 @@ include("head.inc");
                       <td><a id="help_for_logpackets" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Log NAT-PMP");?></td>
                       <td>
                        <input name="logpackets" type="checkbox" value="yes" <?=!empty($pconfig['logpackets']) ? "checked=\"checked\"" : ""; ?> />
-                       <div class="hidden" for="help_for_logpackets">
+                       <div class="hidden" data-for="help_for_logpackets">
                          <?=gettext("Log packets handled by UPnP and NAT-PMP rules?");?>
                        </div>
                       </td>
@@ -284,7 +293,7 @@ include("head.inc");
                       <td><a id="help_for_sysuptime" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Use system time");?></td>
                       <td>
                        <input name="sysuptime" type="checkbox" value="yes" <?=!empty($pconfig['sysuptime']) ? "checked=\"checked\"" : ""; ?> />
-                       <div class="hidden" for="help_for_sysuptime">
+                       <div class="hidden" data-for="help_for_sysuptime">
                          <?=gettext("Use system uptime instead of UPnP and NAT-PMP service uptime?");?>
                        </div>
                       </td>
@@ -293,7 +302,7 @@ include("head.inc");
                       <td><a id="help_for_permdefault" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Default deny");?></td>
                       <td>
                        <input name="permdefault" type="checkbox" value="yes" <?=!empty($pconfig['permdefault']) ? "checked=\"checked\"" : ""; ?> />
-                       <div class="hidden" for="help_for_permdefault">
+                       <div class="hidden" data-for="help_for_permdefault">
                          <?=gettext("By default deny access to UPnP and NAT-PMP?");?>
                        </div>
                       </td>
@@ -313,43 +322,24 @@ include("head.inc");
                     </tr>
                   </thead>
                   <tbody>
+<?php foreach (miniupnpd_permuser_list() as $i => $permuser): ?>
                     <tr>
-                      <td width="22%"><a id="help_for_permuser1" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Set 1");?></td>
-                      <td width="78%">
-                        <input name="permuser1" type="text" value="<?=$pconfig['permuser1'];?>" />
-                        <div class="hidden" for="help_for_permuser1">
+<?php if ($i == 1): ?>
+                      <td style="width:22%"><a id="help_for_permuser" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext('Entry') . ' ' . $i ?></td>
+<?php else: ?>
+                      <td style="width:22%"><i class="fa fa-info-circle text-muted"></i> <?=gettext('Entry') . ' ' . $i ?></td>
+<?php endif ?>
+                      <td style="width:78%">
+                        <input name="<?= html_safe($permuser) ?>" type="text" value="<?= $pconfig[$permuser] ?>" />
+<?php if ($i == 1): ?>
+                        <div class="hidden" data-for="help_for_permuser">
                           <?=gettext("Format: [allow or deny] [ext port or range] [int ipaddr or ipaddr/cdir] [int port or range]");?><br/>
                           <?=gettext("Example: allow 1024-65535 192.168.0.0/24 1024-65535");?>
                         </div>
+<?php endif ?>
                       </td>
                     </tr>
-                    <tr>
-                      <td><a id="help_for_permuser2" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Set 2");?></td>
-                      <td>
-                        <input name="permuser2" type="text" value="<?=$pconfig['permuser2'];?>" />
-                        <div class="hidden" for="help_for_permuser2">
-                          <?=gettext("Format: [allow or deny] [ext port or range] [int ipaddr or ipaddr/cdir] [int port or range]");?>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td><a id="help_for_permuser3" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Set 3");?></td>
-                      <td>
-                        <input name="permuser3" type="text" value="<?=$pconfig['permuser3'];?>" />
-                        <div class="hidden" for="help_for_permuser3">
-                          <?=gettext("Format: [allow or deny] [ext port or range] [int ipaddr or ipaddr/cdir] [int port or range]");?>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td><a id="help_for_permuser4" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Set 4");?></td>
-                      <td>
-                        <input name="permuser4" type="text" value="<?=$pconfig['permuser4'];?>" />
-                        <div class="hidden" for="help_for_permuser4">
-                          <?=gettext("Format: [allow or deny] [ext port or range] [int ipaddr or ipaddr/cdir] [int port or range]");?>
-                        </div>
-                      </td>
-                    </tr>
+<?php endforeach ?>
                   </tbody>
                 </table>
               </div>
@@ -361,8 +351,8 @@ include("head.inc");
                 <table class="table table-striped">
                   <tbody>
                     <tr>
-                     <td width="22%" valign="top">&nbsp;</td>
-                     <td width="78%">
+                     <td style="width:22%; vertical-align:top">&nbsp;</td>
+                     <td style="width:78%">
                        <input name="Submit" type="submit" class="btn btn-primary" value="<?=gettext("Save");?>" />
                      </td>
                     </tr>

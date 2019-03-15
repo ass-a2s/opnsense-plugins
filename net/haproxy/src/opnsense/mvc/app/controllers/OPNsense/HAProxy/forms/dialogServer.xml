@@ -1,5 +1,11 @@
 <form>
     <field>
+        <id>server.enabled</id>
+        <label>Enabled</label>
+        <type>checkbox</type>
+        <help>Enable this server.</help>
+    </field>
+    <field>
         <id>server.name</id>
         <label>Name</label>
         <type>text</type>
@@ -22,14 +28,13 @@
         <id>server.port</id>
         <label>Port</label>
         <type>text</type>
-        <help><![CDATA[Provide the TCP communication port for this server, i.e. 80 or 443.]]></help>
+        <help><![CDATA[Provide the TCP or UDP communication port for this server, i.e. 80 or 443. If set, all connections will be sent to this port. If unset, the same port the client connected to will be used.]]></help>
     </field>
     <field>
         <id>server.mode</id>
         <label>Mode</label>
         <type>dropdown</type>
         <help><![CDATA[Sets the operation mode to use for this server.]]></help>
-        <advanced>true</advanced>
     </field>
     <field>
         <id>server.ssl</id>
@@ -46,8 +51,9 @@
     <field>
         <id>server.sslCA</id>
         <label>SSL Verify CA</label>
-        <type>dropdown</type>
-        <help><![CDATA[This certificate authority will be used to verify server's certificate. <br/>To import additional CAs, go to <a href="/system_certmanager.php">Certificate Manager</a>.]]></help>
+        <type>select_multiple</type>
+        <allownew>true</allownew>
+        <help><![CDATA[These CAs will be used to verify server's certificate. <br/>To import additional CAs, go to <a href="/system_certmanager.php">Certificate Manager</a>.]]></help>
         <hint>Type CA name or choose from list.</hint>
     </field>
     <field>
@@ -77,7 +83,7 @@
         <id>server.checkInterval</id>
         <label>Check Interval</label>
         <type>text</type>
-        <help><![CDATA[Sets the interval (in milliseconds) for running health checks on this server. This setting takes precedence. If set, the interval in the healthcheck is ignored.]]></help>
+        <help><![CDATA[Sets the interval (in milliseconds) for running health checks on this server. This setting takes precedence over default values in health monitors. It can still be overwritten from the backend pool.]]></help>
         <advanced>true</advanced>
     </field>
     <field>
@@ -103,9 +109,9 @@
     </field>
     <field>
         <id>server.advanced</id>
-        <label>Advanced options</label>
+        <label>Option pass-through</label>
         <type>text</type>
-        <help><![CDATA[A list of parameters that will be appended to the server line in every backend where this is will be used.<br/>Example: send-proxy<br/><div class="text-info"><b>NOTE:</b> The syntax will not be checked, use at your own risk!</div>.]]></help>
+        <help><![CDATA[A list of parameters that will be appended to the server line in every backend where this server will be used.<br/>Example: send-proxy<br/>.]]></help>
         <advanced>true</advanced>
     </field>
 </form>

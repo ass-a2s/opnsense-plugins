@@ -1,0 +1,78 @@
+<model>
+    <mount>//OPNsense/telegraf/input</mount>
+    <description>Telegraf inputs configuration</description>
+    <version>1.0.2</version>
+    <items>
+        <cpu type="BooleanField">
+            <default>1</default>
+            <Required>N</Required>
+        </cpu>
+        <cpu_percpu type="BooleanField">
+            <default>1</default>
+            <Required>N</Required>
+        </cpu_percpu>
+        <cpu_totalcpu type="BooleanField">
+            <default>1</default>
+            <Required>N</Required>
+        </cpu_totalcpu>
+        <collect_cpu_time type="BooleanField">
+            <default>0</default>
+            <Required>N</Required>
+        </collect_cpu_time>
+        <disk type="BooleanField">
+            <default>1</default>
+            <Required>N</Required>
+        </disk>
+        <disk_mount_points type="TextField">
+            <default></default>
+            <Required>N</Required>
+        </disk_mount_points>
+        <disk_ignore_fs type="CSVListField">
+            <default></default>
+            <Required>N</Required>
+        </disk_ignore_fs>
+        <diskio type="BooleanField">
+            <default>1</default>
+            <Required>N</Required>
+        </diskio>
+        <mem type="BooleanField">
+            <default>1</default>
+            <Required>N</Required>
+        </mem>
+        <processes type="BooleanField">
+            <default>1</default>
+            <Required>N</Required>
+        </processes>
+        <swap type="BooleanField">
+            <default>0</default>
+            <Required>N</Required>
+        </swap>
+        <system type="BooleanField">
+            <default>1</default>
+            <Required>N</Required>
+        </system>
+        <network type="BooleanField">
+            <default>0</default>
+            <Required>N</Required>
+        </network>
+        <pf type="BooleanField">
+            <default>0</default>
+            <Required>N</Required>
+        </pf>
+        <ping type="BooleanField">
+            <default>0</default>
+            <Required>N</Required>
+        </ping>
+        <ping_hosts type="CSVListField">
+            <Required>N</Required>
+        </ping_hosts>
+        <haproxy type="BooleanField">
+            <default>0</default>
+            <Required>N</Required>
+        </haproxy>
+        <zfs type="BooleanField">
+            <default>0</default>
+            <Required>N</Required>
+        </zfs>
+    </items>
+</model>

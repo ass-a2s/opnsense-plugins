@@ -136,10 +136,10 @@ include("head.inc");
               <div class="table-responsive">
                 <table class="table table-striped opnsense_standard_table_form">
                   <tr>
-                    <td width="22%"><strong><?=gettext("RFC 2136 client");?></strong></td>
-                    <td width="78%" align="right">
+                    <td style="width:22%"><strong><?=gettext("RFC 2136 client");?></strong></td>
+                    <td style="width:78%; text-align:right">
                       <small><?=gettext("full help"); ?> </small>
-                      <i class="fa fa-toggle-off text-danger"  style="cursor: pointer;" id="show_all_help_page" type="button"></i>
+                      <i class="fa fa-toggle-off text-danger"  style="cursor: pointer;" id="show_all_help_page"></i>
                     </td>
                   </tr>
                   <tr>
@@ -167,7 +167,7 @@ include("head.inc");
                     <td><a id="help_for_host" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Hostname");?></td>
                     <td>
                       <input name="host" type="text" id="host" value="<?=$pconfig['host'];?>" />
-                      <div class="hidden" for="help_for_host">
+                      <div class="hidden" data-for="help_for_host">
                         <?= gettext('Fully qualified hostname of the host to be updated.') ?>
                       </div>
                     </td>
@@ -178,7 +178,7 @@ include("head.inc");
                       <input name="recordtype" type="radio" value="" <?= empty($pconfig['recordtype']) ? 'checked="checked"' : '' ?> /> <?=gettext('All');?> &nbsp;
                       <input name="recordtype" type="radio" value="A" <?= $pconfig['recordtype'] == 'A' ? 'checked="checked"' : '' ?> /> <?=gettext('A (IPv4)');?> &nbsp;
                       <input name="recordtype" type="radio" value="AAAA" <?= $pconfig['recordtype'] == 'AAAA' ? 'checked="checked"' : '' ?> /> <?=gettext('AAAA (IPv6)');?>
-                      <div class="hidden" for="help_for_recordtype">
+                      <div class="hidden" data-for="help_for_recordtype">
                         <?=gettext("'All' will update all available record types.");?>
                       </div>
                     </td>
@@ -193,7 +193,7 @@ include("head.inc");
                     <td><a id="help_for_keyname" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Key name");?></td>
                     <td>
                       <input name="keyname" type="text" id="keyname" value="<?=$pconfig['keyname'];?>" />
-                      <div class="hidden" for="help_for_keyname">
+                      <div class="hidden" data-for="help_for_keyname">
                         <?=gettext("This must match the setting on the DNS server.");?>
                       </div>
                     </td>
@@ -210,7 +210,7 @@ include("head.inc");
                     <td><a id="help_for_keydata" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Key");?></td>
                     <td>
                       <input name="keydata" type="text" id="keydata" size="70" value="<?=htmlspecialchars($pconfig['keydata']);?>" />
-                      <div class="hidden" for="help_for_keydata">
+                      <div class="hidden" data-for="help_for_keydata">
                         <?=gettext("Paste an HMAC-MD5 key here.");?>
                       </div>
                     </td>

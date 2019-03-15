@@ -1,0 +1,50 @@
+<form>
+    <field>
+        <id>general.enabled</id>
+        <label>Enable</label>
+        <type>checkbox</type>
+        <help>This will activate OpenConnect Client.</help>
+    </field>
+    <field>
+        <id>general.server</id>
+        <label>VPN Server</label>
+        <type>text</type>
+        <help>The FQDN or IP address of the VPN server.</help>
+    </field>
+    <field>
+        <id>general.user</id>
+        <label>Username</label>
+        <type>text</type>
+        <help>The user name for this connection.</help>
+    </field>
+    <field>
+        <id>general.password</id>
+        <label>Password</label>
+        <type>password</type>
+        <help>The password name for this connection. Be aware that it will stored in cleartext on this device.</help>
+    </field>
+    <field>
+        <id>general.servercert</id>
+        <label>Certificate Hash</label>
+        <type>text</type>
+        <help>If you have a wildcard certificate or the CA is untrusted, you have to enter the SHA hash of the certificate to force a connect.</help>
+    </field>
+    <field>
+        <id>general.hash</id>
+        <label>Certificate Hash Type</label>
+        <type>dropdown</type>
+        <help>Select the type of hash. Possible values are SHA256 or SHA1.</help>
+    </field>
+    <field>
+        <id>general.group</id>
+        <label>Group Name</label>
+        <type>text</type>
+        <help>When using profiles for group separation please set here.</help>
+    </field>
+    <field>
+        <id>general.clientcertificate</id>
+        <label>Client Certificate</label>
+        <type>dropdown</type>
+        <help>Select the client certificate to use.</help>
+    </field>
+</form>

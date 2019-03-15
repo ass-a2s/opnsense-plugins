@@ -1,7 +1,7 @@
 <?php
 
 /*
-    Copyright (C) 2017 Michael Muenz
+    Copyright (C) 2017 Michael Muenz <m.muenz@gmail.com>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@ class GeneralController extends \OPNsense\Base\IndexController
 {
     public function indexAction()
     {
-        $this->view->title = gettext("Collectd settings");
         $this->view->generalForm = $this->getForm("general");
         $this->view->pick('OPNsense/Collectd/general');
     }

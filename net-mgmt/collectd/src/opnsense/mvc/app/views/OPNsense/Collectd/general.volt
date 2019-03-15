@@ -1,7 +1,7 @@
 {#
 
 OPNsense® is Copyright © 2014 – 2017 by Deciso B.V.
-This file is Copyright © 2017 by Michael Muenz
+This file is Copyright © 2017 by Michael Muenz <m.muenz@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -28,13 +28,13 @@ POSSIBILITY OF SUCH DAMAGE.
 #}
 <div class="content-box" style="padding-bottom: 1.5em;">
     {{ partial("layout_partials/base_form",['fields':generalForm,'id':'frm_general_settings'])}}
-    <hr />
     <div class="col-md-12">
-        <button class="btn btn-primary"  id="saveAct" type="button"><b>{{ lang._('Save') }}</b><i id="saveAct_progress" class=""></i></button>
+        <hr />
+        <button class="btn btn-primary" id="saveAct" type="button"><b>{{ lang._('Save') }}</b> <i id="saveAct_progress"></i></button>
     </div>
 </div>
 
-<script type="text/javascript">
+<script>
     $( document ).ready(function() {
         var data_get_map = {'frm_general_settings':"/api/collectd/general/get"};
         mapDataToFormUI(data_get_map).done(function(data){

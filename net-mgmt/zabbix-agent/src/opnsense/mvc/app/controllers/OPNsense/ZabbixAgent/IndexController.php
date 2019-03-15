@@ -41,10 +41,12 @@ class IndexController extends \OPNsense\Base\IndexController
      */
     public function indexAction()
     {
-        // set page title
-        $this->view->title = gettext('Zabbix Agent Settings');
         // include form definitions
         $this->view->settingsForm = $this->getForm("settings");
+        // link userparameter dialog
+        $this->view->formDialogUserparameter = $this->getForm("dialogUserparameter");
+        // link alias dialog
+        $this->view->formDialogAlias = $this->getForm("dialogAlias");
         // pick the template to serve
         $this->view->pick('OPNsense/ZabbixAgent/index');
     }

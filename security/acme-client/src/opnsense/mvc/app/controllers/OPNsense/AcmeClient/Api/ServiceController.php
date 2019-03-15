@@ -48,8 +48,10 @@ class ServiceController extends ApiControllerBase
     public function startAction()
     {
         if ($this->request->isPost()) {
+            // close session for long running action
+            $this->sessionClose();
             $backend = new Backend();
-            $response = $backend->configdRun("acmeclient http-start", true);
+            $response = $backend->configdRun("acmeclient http-start");
             return array("response" => $response);
         } else {
             return array("response" => array());
@@ -63,6 +65,8 @@ class ServiceController extends ApiControllerBase
     public function stopAction()
     {
         if ($this->request->isPost()) {
+            // close session for long running action
+            $this->sessionClose();
             $backend = new Backend();
             $response = $backend->configdRun("acmeclient http-stop");
             return array("response" => $response);
@@ -78,6 +82,8 @@ class ServiceController extends ApiControllerBase
     public function restartAction()
     {
         if ($this->request->isPost()) {
+            // close session for long running action
+            $this->sessionClose();
             $backend = new Backend();
             $response = $backend->configdRun("acmeclient http-restart");
             return array("response" => $response);
@@ -186,6 +192,33 @@ class ServiceController extends ApiControllerBase
         $backend->configdRun("acmeclient setup");
         // run the command
         $response = $backend->configdRun("acmeclient sign-all-certs");
+        return array("result" => $response);
+    }
+
+    /**
+     * Remove ALL certificate data and configuration and reset ALL states
+     * @return array
+     * @throws \Exception
+     */
+    public function resetAction()
+    {
+        $model = new AcmeClient();
+        // reset certificate states
+        foreach ($model->getNodeByReference('certificates.certificate')->iterateItems() as $cert) {
+            $cert->lastUpdate = null;
+            $cert->statusCode = null;
+            $cert->statusLastUpdate = null;
+        }
+        // reset account states
+        foreach ($model->getNodeByReference('accounts.account')->iterateItems() as $account) {
+            $account->lastUpdate = null;
+        }
+        // reset acme.sh data
+        $backend = new Backend();
+        $response = $backend->configdRun("acmeclient reset-acme-client");
+        // serialize to config and save
+        $model->serializeToConfig();
+        Config::getInstance()->save();
         return array("result" => $response);
     }
 }

@@ -4,7 +4,7 @@
     Copyright (C) 2014-2016 Deciso B.V.
     Copyright (C) 2009 Ermal Luçi
     Copyright (C) 2004 Scott Ullrich <sullrich@gmail.com>
-    Copyright (C) 2003-2004 Manuel Kasper <mk@neon1.net>.
+    Copyright (C) 2003-2004 Manuel Kasper <mk@neon1.net>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -104,7 +104,7 @@ include("head.inc");
 
 <body>
   <?php include("fbegin.inc"); ?>
-  <script type="text/javascript">
+  <script>
     $( document ).ready(function() {
       /**
        *  Aliases
@@ -149,15 +149,16 @@ include("head.inc");
                 <div class="table-responsive">
                   <table class="table table-striped opnsense_standard_table_form">
                     <tr>
-                      <td width="22%"><strong><?=gettext("IGMP Proxy Edit");?></strong></td>
-                      <td width="78%" align="right">
+                      <td style="width:22%"><strong><?=gettext("IGMP Proxy Edit");?></strong></td>
+                      <td style="width:78%; text-align:right">
                         <small><?=gettext("full help"); ?> </small>
-                        <i class="fa fa-toggle-off text-danger"  style="cursor: pointer;" id="show_all_help_page" type="button"></i>
+                        <i class="fa fa-toggle-off text-danger"  style="cursor: pointer;" id="show_all_help_page"></i>
                       </td>
                     </tr>
                     <tr>
                       <td><i class="fa fa-info-circle text-muted"></i> <?=gettext("Interface");?></td>
-                      <td> <select name="ifname" id="ifname" >
+                      <td>
+                        <select class="selectpicker" name="ifname" id="ifname" >
 <?php
                         foreach (get_configured_interface_with_descr() as $ifnam => $ifdescr):?>
                           <option value="<?=$ifnam;?>" <?=$ifnam == $pconfig['ifname'] ? "selected=\"selected\"" :"";?>>
@@ -173,7 +174,7 @@ include("head.inc");
                       <td><a id="help_for_descr" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Description");?></td>
                       <td>
                         <input name="descr" type="text" class="formfld unknown" id="descr" size="40" value="<?=$pconfig['descr'];?>" />
-                        <div class="hidden" for="help_for_descr">
+                        <div class="hidden" data-for="help_for_descr">
                           <?=gettext("You may enter a description here for your reference (not parsed).");?>
                         </div>
                       </td>
@@ -181,11 +182,11 @@ include("head.inc");
                     <tr>
                       <td><a id="help_for_type" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Type");?></td>
                       <td>
-                        <select name="type" class="formselect" id="type" >
+                        <select class="selectpicker" name="type" id="type">
                           <option value="upstream" <?=$pconfig['type'] == "upstream" ?  "selected=\"selected\"" : ""; ?>><?=gettext("Upstream Interface");?></option>
                           <option value="downstream" <?= $pconfig['type'] == "downstream" ? "selected=\"selected\"" : ""; ?>><?=gettext("Downstream Interface");?></option>
                         </select>
-                        <div class="hidden" for="help_for_type">
+                        <div class="hidden" data-for="help_for_type">
                             <?=gettext("The upstream network interface is the outgoing interface which is".
                               " responsible for communicating to available multicast data sources.".
                               " There can only be one upstream interface.");?>
@@ -200,7 +201,7 @@ include("head.inc");
                       <td><a id="help_for_threshold" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Threshold");?></td>
                       <td>
                         <input name="threshold" type="text" class="formfld unknown" id="threshold" value="<?=$pconfig['threshold'];?>" />
-                        <div class="hidden" for="help_for_threshold">
+                        <div class="hidden" data-for="help_for_threshold">
                           <?=gettext("Defines the TTL threshold for the network interface. ".
                                "Packets with a lower TTL than the threshold value will be ignored. ".
                                "This setting is optional, and by default the threshold is 1.");?>
@@ -227,13 +228,13 @@ include("head.inc");
                         foreach($pconfig['networks_network'] as $item_idx => $network):?>
                           <tr>
                             <td>
-                              <div style="cursor:pointer;" class="act-removerow btn btn-default btn-xs" alt="remove"><span class="glyphicon glyphicon-minus"></span></div>
+                              <div style="cursor:pointer;" class="act-removerow btn btn-default btn-xs" alt="remove"><i class="fa fa-minus fa-fw"></i></div>
                             </td>
                             <td>
                               <input name="networks_network[]" type="text" id="network_<?=$item_idx;?>" value="<?=$network;?>" />
                             </td>
                             <td>
-                              <select name="networks_mask[]" data-network-id="network_<?=$item_idx;?>" class="ipv4v6net" id="mask<?=$item_idx;?>">
+                              <select name="networks_mask[]" data-network-id="network_<?=$item_idx;?>" class="selectpicker ipv4v6net" id="mask<?=$item_idx;?>" data-length="3" data-width="auto">
 <?php
                                 for ($i = 128; $i > 0; $i--):?>
                                 <option value="<?=$i;?>" <?= $pconfig['networks_mask'][$item_idx] == $i ?  "selected=\"selected\"" : ""?>>
@@ -250,7 +251,7 @@ include("head.inc");
                         <tfoot>
                           <tr>
                             <td colspan="4">
-                              <div id="addNew" style="cursor:pointer;" class="btn btn-default btn-xs" alt="add"><span class="glyphicon glyphicon-plus"></span></div>
+                              <div id="addNew" style="cursor:pointer;" class="btn btn-default btn-xs" alt="add"><i class="fa fa-plus fa-fw"></i></div>
                             </td>
                           </tr>
                         </tfoot>

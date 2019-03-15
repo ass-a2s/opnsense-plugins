@@ -1,6 +1,6 @@
 {#
 
-Copyright (C) 2016 Frank Wall
+Copyright (C) 2016-2017 Frank Wall
 OPNsense® is Copyright © 2014 – 2015 by Deciso B.V.
 All rights reserved.
 
@@ -27,7 +27,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #}
 
-<script type="text/javascript">
+<script>
 
     $( document ).ready(function() {
 
@@ -79,6 +79,7 @@ POSSIBILITY OF SUCH DAMAGE.
                 set:'/api/haproxy/settings/setServer/',
                 add:'/api/haproxy/settings/addServer/',
                 del:'/api/haproxy/settings/delServer/',
+                toggle:'/api/haproxy/settings/toggleServer/',
                 options: {
                     rowCount:[10,25,50,100,500,1000]
                 }
@@ -121,6 +122,32 @@ POSSIBILITY OF SUCH DAMAGE.
             }
         );
 
+        $("#grid-users").UIBootgrid(
+            {   search:'/api/haproxy/settings/searchUsers',
+                get:'/api/haproxy/settings/getUser/',
+                set:'/api/haproxy/settings/setUser/',
+                add:'/api/haproxy/settings/addUser/',
+                del:'/api/haproxy/settings/delUser/',
+                toggle:'/api/haproxy/settings/toggleUser/',
+                options: {
+                    rowCount:[10,25,50,100,500,1000]
+                }
+            }
+        );
+
+        $("#grid-groups").UIBootgrid(
+            {   search:'/api/haproxy/settings/searchGroups',
+                get:'/api/haproxy/settings/getGroup/',
+                set:'/api/haproxy/settings/setGroup/',
+                add:'/api/haproxy/settings/addGroup/',
+                del:'/api/haproxy/settings/delGroup/',
+                toggle:'/api/haproxy/settings/toggleGroup/',
+                options: {
+                    rowCount:[10,25,50,100,500,1000]
+                }
+            }
+        );
+
         $("#grid-luas").UIBootgrid(
             {   search:'/api/haproxy/settings/searchLuas',
                 get:'/api/haproxy/settings/getLua/',
@@ -145,6 +172,107 @@ POSSIBILITY OF SUCH DAMAGE.
                 }
             }
         );
+
+        $("#grid-mapfiles").UIBootgrid(
+            {   search:'/api/haproxy/settings/searchMapfiles',
+                get:'/api/haproxy/settings/getMapfile/',
+                set:'/api/haproxy/settings/setMapfile/',
+                add:'/api/haproxy/settings/addMapfile/',
+                del:'/api/haproxy/settings/delMapfile/',
+                options: {
+                    rowCount:[10,25,50,100,500,1000]
+                }
+            }
+        );
+
+        $("#grid-cpus").UIBootgrid(
+            {   search:'/api/haproxy/settings/searchCpus',
+                get:'/api/haproxy/settings/getCpu/',
+                set:'/api/haproxy/settings/setCpu/',
+                add:'/api/haproxy/settings/addCpu/',
+                del:'/api/haproxy/settings/delCpu/',
+                toggle:'/api/haproxy/settings/toggleCpu/',
+                options: {
+                    rowCount:[10,25,50,100,500,1000]
+                }
+            }
+        );
+
+        // hook into on-show event for dialog to extend layout.
+        $('#DialogAcl').on('shown.bs.modal', function (e) {
+            $("#acl\\.expression").change(function(){
+                var service_id = 'table_' + $(this).val();
+                $(".expression_table").hide();
+                // $(".table_"+$(this).val()).show();
+                $("."+service_id).show();
+            });
+            $("#acl\\.expression").change();
+        })
+
+        // hook into on-show event for dialog to extend layout.
+        $('#DialogAction').on('shown.bs.modal', function (e) {
+            $("#action\\.type").change(function(){
+                var service_id = 'table_' + $(this).val();
+                $(".type_table").hide();
+                // $(".table_"+$(this).val()).show();
+                $("."+service_id).show();
+            });
+            $("#action\\.type").change();
+        })
+
+        // hook into on-show event for dialog to extend layout.
+        $('#DialogBackend').on('shown.bs.modal', function (e) {
+            $("#backend\\.healthCheckEnabled").change(function(){
+                var service_id = 'table_healthcheck_' + $(this).is(':checked');
+                $(".healthcheck_table").hide();
+                $("."+service_id).show();
+            });
+            $("#backend\\.healthCheckEnabled").change();
+
+            $("#backend\\.persistence").change(function(){
+                var persistence_id = 'table_persistence_' + $(this).val();
+                $(".persistence_table").hide();
+                $("."+persistence_id).show();
+            });
+            $("#backend\\.persistence").change();
+        })
+
+        // hook into on-show event for dialog to extend layout.
+        $('#DialogFrontend').on('shown.bs.modal', function (e) {
+            $("#frontend\\.mode").change(function(){
+                var service_id = 'table_' + $(this).val();
+                $(".mode_table").hide();
+                $("."+service_id).show();
+            });
+            $("#frontend\\.mode").change();
+
+            // show/hide SSL offloading
+            $("#frontend\\.ssl_enabled").change(function(){
+                var service_id = 'table_ssl_' + $(this).is(':checked');
+                $(".table_ssl").hide();
+                $("."+service_id).show();
+            });
+            $("#frontend\\.ssl_enabled").change();
+
+            // show/hide advanced SSL settings
+            $("#frontend\\.ssl_advancedEnabled").change(function(){
+                var service_id = 'table_ssl_advanced_' + $(this).is(':checked');
+                $(".table_ssl_advanced").hide();
+                $("."+service_id).show();
+            });
+            $("#frontend\\.ssl_advancedEnabled").change();
+        })
+
+        // hook into on-show event for dialog to extend layout.
+        $('#DialogHealthcheck').on('shown.bs.modal', function (e) {
+            $("#healthcheck\\.type").change(function(){
+                var service_id = 'table_' + $(this).val();
+                $(".type_table").hide();
+                // $(".table_"+$(this).val()).show();
+                $("."+service_id).show();
+            });
+            $("#healthcheck\\.type").change();
+        })
 
         /***********************************************************************
          * Commands
@@ -264,33 +392,31 @@ POSSIBILITY OF SUCH DAMAGE.
             $(this).click(function(){
                 var frm_id = $(this).closest("form").attr("id");
                 var frm_title = $(this).closest("form").attr("data-title");
+
+                // set progress animation
+                $("#"+frm_id+"_progress").addClass("fa fa-spinner fa-pulse");
+
                 // save data for tab
                 saveFormToEndpoint(url="/api/haproxy/settings/set",formid=frm_id,callback_ok=function(){
-                    // set progress animation when reloading
-                    $("#"+frm_id+"_progress").addClass("fa fa-spinner fa-pulse");
 
                     // on correct save, perform reconfigure
-                    ajaxCall(url="/api/haproxy/service/reconfigure", sendData={}, callback=function(data,status){
-                        // when done, disable progress animation.
-                        $("#"+frm_id+"_progress").removeClass("fa fa-spinner fa-pulse");
-
-                        if (status != "success" || data['status'] != 'ok' ) {
-                            // fix error handling
+                    ajaxCall(url="/api/haproxy/service/reconfigure", sendData={}, callback=function(data,status) {
+                        if (status != "success" || data['status'] != 'ok') {
                             BootstrapDialog.show({
-                                type:BootstrapDialog.TYPE_WARNING,
-                                title: frm_title,
-                                message: JSON.stringify(data),
+                                type: BootstrapDialog.TYPE_WARNING,
+                                title: "{{ lang._('Error reconfiguring HAProxy') }}",
+                                message: data['status'],
                                 draggable: true
                             });
                         } else {
-                            // request service status after successful save and update status box (wait a few seconds before update)
-                            setTimeout(function(){
-                                ajaxCall(url="/api/haproxy/service/status", sendData={}, callback=function(data,status) {
-                                    updateServiceStatusUI(data['status']);
-                                });
-                            },3000);
+                            ajaxCall(url="/api/haproxy/service/status", sendData={}, callback=function(data,status) {
+                                updateServiceStatusUI(data['status']);
+                            });
                         }
+                        // when done, disable progress animation.
+                        $("#"+frm_id+"_progress").removeClass("fa fa-spinner fa-pulse");
                     });
+
                 });
             });
         });
@@ -308,50 +434,198 @@ POSSIBILITY OF SUCH DAMAGE.
 </script>
 
 <ul class="nav nav-tabs" role="tablist"  id="maintabs">
-{% for tab in mainForm['tabs']|default([]) %}
-    {% if tab['subtabs']|default(false) %}
+    {# manually add tabs #}
+    <li class="active"><a data-toggle="tab" href="#introduction"><b>{{ lang._('Introduction') }}</b></a></li>
+
+    <li role="presentation" class="dropdown">
+        <a data-toggle="dropdown" href="#" class="dropdown-toggle pull-right visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" role="button">
+            <b><span class="caret"></span></b>
+        </a>
+        <a data-toggle="tab" onclick="$('#{% if showIntro|default('0')=='1' %}real-servers-introduction{% else %}servers-tab{% endif %}').click();" class="visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" style="border-right:0px;"><b>{{ lang._('Real Servers') }}</b></a>
+        <ul class="dropdown-menu" role="menu">
+            {% if showIntro|default('0')=='1' %}
+            <li><a data-toggle="tab" id="real-servers-introduction" href="#subtab_haproxy-real-servers-introduction">{{ lang._('Introduction') }}</a></li>
+            {% endif %}
+            <li><a data-toggle="tab" id="servers-tab" href="#servers">{{ lang._('Real Servers') }}</a></li>
+        </ul>
+    </li>
+
+    <li role="presentation" class="dropdown">
+        <a data-toggle="dropdown" href="#" class="dropdown-toggle pull-right visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" role="button">
+            <b><span class="caret"></span></b>
+        </a>
+        <a data-toggle="tab" onclick="$('#{% if showIntro|default('0')=='1' %}virtual-services-introduction{% else %}backends-tab{% endif %}').click();" class="visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" style="border-right:0px;"><b>{{ lang._('Virtual Services') }}</b></a>
+        <ul class="dropdown-menu" role="menu">
+            {% if showIntro|default('0')=='1' %}
+            <li><a data-toggle="tab" id="virtual-services-introduction" href="#subtab_haproxy-virtual-services-introduction">{{ lang._('Introduction') }}</a></li>
+            {% endif %}
+            <li><a data-toggle="tab" id="backends-tab" href="#backends">{{ lang._('Backend Pools') }}</a></li>
+            <li><a data-toggle="tab" href="#frontends">{{ lang._('Public Services') }}</a></li>
+        </ul>
+    </li>
+
+    <li role="presentation" class="dropdown">
+        <a data-toggle="dropdown" href="#" class="dropdown-toggle pull-right visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" role="button">
+            <b><span class="caret"></span></b>
+        </a>
+        <a data-toggle="tab" onclick="$('#{% if showIntro|default('0')=='1' %}rules-checks-introduction{% else %}healthchecks-tab{% endif %}').click();" class="visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" style="border-right:0px;"><b>{{ lang._('Rules & Checks') }}</b></a>
+        <ul class="dropdown-menu" role="menu">
+            {% if showIntro|default('0')=='1' %}
+            <li><a data-toggle="tab" id="rules-checks-introduction" href="#subtab_haproxy-rules-checks-introduction">{{ lang._('Introduction') }}</a></li>
+            {% endif %}
+            <li><a data-toggle="tab" id="healthchecks-tab" href="#healthchecks">{{ lang._('Health Monitors') }}</a></li>
+            <li><a data-toggle="tab" href="#acls">{{ lang._('Conditions') }}</a></li>
+            <li><a data-toggle="tab" href="#actions">{{ lang._('Rules') }}</a></li>
+        </ul>
+    </li>
+
+    <li role="presentation" class="dropdown">
+        <a data-toggle="dropdown" href="#" class="dropdown-toggle pull-right visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" role="button">
+            <b><span class="caret"></span></b>
+        </a>
+        <a data-toggle="tab" onclick="$('#{% if showIntro|default('0')=='1' %}user-management-introduction{% else %}users-tab{% endif %}').click();" class="visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" style="border-right:0px;"><b>{{ lang._('User Management') }}</b></a>
+        <ul class="dropdown-menu" role="menu">
+            {% if showIntro|default('0')=='1' %}
+            <li><a data-toggle="tab" id="user-management-introduction" href="#subtab_haproxy-user-management-introduction">{{ lang._('Introduction') }}</a></li>
+            {% endif %}
+            <li><a data-toggle="tab" id="users-tab" href="#users">{{ lang._('Users') }}</a></li>
+            <li><a data-toggle="tab" href="#groups">{{ lang._('Groups') }}</a></li>
+        </ul>
+    </li>
+
+    {# add automatically generated tabs #}
+    {% for tab in mainForm['tabs']|default([]) %}
+        {% if tab['subtabs']|default(false) %}
         {# Tab with dropdown #}
-
-        {# Find active subtab #}
-            {% set active_subtab="" %}
-            {% for subtab in tab['subtabs']|default({}) %}
-                {% if subtab[0]==mainForm['activetab']|default("") %}
-                    {% set active_subtab=subtab[0] %}
-                {% endif %}
-            {% endfor %}
-
-        <li role="presentation" class="dropdown {% if mainForm['activetab']|default("") == active_subtab %}active{% endif %}">
-            <a data-toggle="dropdown" href="#" class="dropdown-toggle pull-right visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" role="button" style="border-left: 1px dashed lightgray;">
+        <li role="presentation" class="dropdown">
+            <a data-toggle="dropdown" href="#" class="dropdown-toggle pull-right visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" role="button">
                 <b><span class="caret"></span></b>
             </a>
-            <a data-toggle="tab" href="#subtab_{{tab['subtabs'][0][0]}}" class="visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" style="border-right:0px;"><b>{{tab[1]}}</b></a>
+            <a data-toggle="tab" onclick="$('#subtab_item_{{tab['subtabs'][0][0]}}').click();" class="visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" style="border-right:0px;"><b>{{tab[1]}}</b></a>
             <ul class="dropdown-menu" role="menu">
                 {% for subtab in tab['subtabs']|default({})%}
-                <li class="{% if mainForm['activetab']|default("") == subtab[0] %}active{% endif %}"><a data-toggle="tab" href="#subtab_{{subtab[0]}}"><i class="fa fa-check-square"></i> {{subtab[1]}}</a></li>
+                <li><a data-toggle="tab" id="subtab_item_{{subtab[0]}}" href="#subtab_{{subtab[0]}}">{{subtab[1]}}</a></li>
                 {% endfor %}
             </ul>
         </li>
-    {% else %}
+        {% else %}
         {# Standard Tab #}
-        <li {% if mainForm['activetab']|default("") == tab[0] %} class="active" {% endif %}>
+        <li>
                 <a data-toggle="tab" href="#tab_{{tab[0]}}">
                     <b>{{tab[1]}}</b>
                 </a>
         </li>
-    {% endif %}
-{% endfor %}
-    {# add custom content #}
-    <li><a data-toggle="tab" href="#frontends"><b>{{ lang._('Frontends') }}</b></a></li>
-    <li><a data-toggle="tab" href="#backends"><b>{{ lang._('Backends') }}</b></a></li>
-    <li><a data-toggle="tab" href="#servers"><b>{{ lang._('Servers') }}</b></a></li>
-    <li><a data-toggle="tab" href="#healthchecks"><b>{{ lang._('Health Checks') }}</b></a></li>
-    <li><a data-toggle="tab" href="#actions"><b>{{ lang._('Actions') }}</b></a></li>
-    <li><a data-toggle="tab" href="#acls"><b>{{ lang._('ACLs') }}</b></a></li>
-    <li><a data-toggle="tab" href="#luas"><b>{{ lang._('Lua Scripts') }}</b></a></li>
-    <li><a data-toggle="tab" href="#errorfiles"><b>{{ lang._('Error Files') }}</b></a></li>
+        {% endif %}
+    {% endfor %}
+
+    <li role="presentation" class="dropdown">
+        <a data-toggle="dropdown" href="#" class="dropdown-toggle pull-right visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" role="button">
+            <b><span class="caret"></span></b>
+        </a>
+        <a data-toggle="tab" onclick="$('#{% if showIntro|default('0')=='1' %}advanced-introduction{% else %}errorfiles-tab{% endif %}').click();" class="visible-lg-inline-block visible-md-inline-block visible-xs-inline-block visible-sm-inline-block" style="border-right:0px;"><b>{{ lang._('Advanced') }}</b></a>
+        <ul class="dropdown-menu" role="menu">
+            {% if showIntro|default('0')=='1' %}
+            <li><a data-toggle="tab" id="advanced-introduction" href="#subtab_haproxy-advanced-introduction">{{ lang._('Introduction') }}</a></li>
+            {% endif %}
+            <li><a data-toggle="tab" id="errorfiles-tab" href="#errorfiles">{{ lang._('Error Messages') }}</a></li>
+            <li><a data-toggle="tab" href="#luas">{{ lang._('Lua Scripts') }}</a></li>
+            <li><a data-toggle="tab" href="#mapfiles">{{ lang._('Map Files') }}</a></li>
+            <li><a data-toggle="tab" href="#cpus">{{ lang._('CPU Affinity Rules') }}</a></li>
+        </ul>
+    </li>
 </ul>
 
 <div class="content-box tab-content">
+    <div id="introduction" class="tab-pane fade in active">
+        <div class="col-md-12">
+            <h1>{{ lang._('Quick Start Guide') }}</h1>
+            <p>{{ lang._('Welcome to the HAProxy plugin! This plugin is designed to offer all the features and flexibility HAProxy is famous for. If you are using HAProxy for the first time, please take some time to get familiar with it. The following information should help you to get started.')}}</p>
+            <p>{{ lang._('Note that you should configure HAProxy in the following order:') }}</p>
+            <ul>
+              <li>{{ lang._('Add %sReal Servers:%s All physical or virtual servers that HAProxy should use to load balance between or proxy to.') | format('<b>', '</b>') }}</li>
+              <li>{{ lang._('Add %sBackend Pools:%s Group the previously added servers to build a server farm. All servers in a group usually deliver the same content. The Backend Pool takes care of health monitoring and load distribution. A Backend Pool must be configured even if you only have a single server.') | format('<b>', '</b>')}}</li>
+              <li>{{ lang._('Add %sPublic Services:%s The Public Service listens for client connections, optionally applies rules and forwards client request data to the selected Backend Pool for load balancing or proxying.') | format('<b>', '</b>') }}</li>
+              <li>{{ lang._('Lastly, enable HAProxy using the %sService Settings%s.') | format('<b>', '</b>') }}</li>
+            </ul>
+            <p>{{ lang._('Please be aware that you need to %smanually%s add the required firewall rules for all configured services.') | format('<b>', '</b>') }}</p>
+            <p>{{ lang._('Further information is available in our %sHAProxy plugin documentation%s and of course in the %sofficial HAProxy documentation%s. Be sure to report bugs and request features on our %sGitHub issue page%s. Code contributions are also very welcome!') | format('<a href="https://docs.opnsense.org/manual/how-tos/haproxy.html" target="_blank">', '</a>', '<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html" target="_blank">', '</a>', '<a href="https://github.com/opnsense/plugins/issues/" target="_blank">', '</a>') }}</p>
+            <br/>
+        </div>
+    </div>
+
+    <div id="subtab_haproxy-real-servers-introduction" class="tab-pane fade">
+        <div class="col-md-12">
+            <h1>{{ lang._('Real Servers') }}</h1>
+            <p>{{ lang._('HAProxy needs to know which servers should be used to serve content. The following minimum information must be provided for each server:') }}</p>
+            <ul>
+              <li>{{ lang._('%sFQDN or IP:%s The IP address or fully-qualified domain name that should be used when communicating with your server.') | format('<b>', '</b>') }}</li>
+              <li>{{ lang._('%sPort:%s The TCP or UDP port that should be used. If unset, the same port the client connected to will be used.') | format('<b>', '</b>') }}</li>
+            </ul>
+            <p>{{ lang._("Please note that advanced mode settings allow you to disable a certain server or to configure it as a backup server in a Backend Pool. Another neat option is the possibility to adjust a server's weight relative to other servers in the same Backend Pool.") }}</p>
+            <p>{{ lang._('Note that it is possible to directly add options to the HAProxy configuration by using the "option pass-through", a setting that is available for several configuration items. It allows you to implement configurations that are currently not officially supported by this plugin. It is strongly discouraged to rely on this feature. Please report missing features on our GitHub page!') | format('<b>', '</b>') }}</p>
+            <br/>
+        </div>
+    </div>
+
+    <div id="subtab_haproxy-virtual-services-introduction" class="tab-pane fade">
+        <div class="col-md-12">
+            <h1>{{ lang._('Virtual Services') }}</h1>
+            <p>{{ lang._("HAProxy requires two virtual services for its load balancing and proxying features. The following virtual services must be configured for everything that should be served by HAProxy:") }}</p>
+            <ul>
+              <li>{{ lang._('%sBackend Pools:%s The HAProxy backend. Group the %spreviously added servers%s to build a server farm. All servers in a group usually deliver the same content. The Backend Pool cares for health monitoring and load distribution. A Backend Pool must also be configured if you only have a single server. The same Backend Pool may be used for multiple Public Services.') | format('<b>', '</b>', '<b>', '</b>') }}</li>
+              <li>{{ lang._('%sPublic Services:%s The HAProxy frontend. The Public Service listens for client connections, optionally applies rules and forwards client request data to the selected Backend Pool for load balancing or proxying. Every Public Service needs to be connected to a %spreviously created Backend Pool%s.') | format('<b>', '</b>', '<b>', '</b>') }}</li>
+            </ul>
+            <p>{{ lang._('Remember to add firewall rules for all configured Public Services.') }}</p>
+            <p>{{ lang._('Note that it is possible to directly add options to the HAProxy configuration by using the "option pass-through", a setting that is available for several configuration items. It allows you to implement configurations that are currently not officially supported by this plugin. It is strongly discouraged to rely on this feature. Please report missing features on our GitHub page!') | format('<b>', '</b>') }}</p>
+            <br/>
+        </div>
+    </div>
+
+    <div id="subtab_haproxy-rules-checks-introduction" class="tab-pane fade">
+        <div class="col-md-12">
+            <h1>{{ lang._('Rules and Checks') }}</h1>
+            <p>{{ lang._("After getting acquainted with HAProxy the following optional features may prove useful:") }}</p>
+            <ul>
+              <li>{{ lang._('%sHealth Monitors:%s The HAProxy "health checks". Health Monitors are used by %sBackend Pools%s to determine if a server is still able to respond to client requests. If a server fails a health check it will automatically be removed from a Backend Pool and healthy servers are automatically re-added.') | format('<b>', '</b>', '<b>', '</b>') }}</li>
+              <li>{{ lang._('%sConditions:%s HAProxy is capable of extracting data from requests, responses and other connection data and match it against predefined patterns. Use these powerful patterns to compose a condition that may be used in multiple Rules.') | format('<b>', '</b>') }}</li>
+              <li>{{ lang._('%sRules:%s Perform a large set of actions if one or more %sConditions%s match. These Rules may be used in %sBackend Pools%s as well as %sPublic Services%s.') | format('<b>', '</b>', '<b>', '</b>', '<b>', '</b>', '<b>', '</b>') }}</li>
+            </ul>
+            <p>{{ lang._("For more information on HAProxy's %sACL feature%s see the %sofficial documentation%s.") | format('<b>', '</b>', '<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html#7" target="_blank">', '</a>') }}</p>
+            <p>{{ lang._('Note that it is possible to directly add options to the HAProxy configuration by using the "option pass-through", a setting that is available for several configuration items. It allows you to implement configurations that are currently not officially supported by this plugin. It is strongly discouraged to rely on this feature. Please report missing features on our GitHub page!') | format('<b>', '</b>') }}</p>
+            <br/>
+        </div>
+    </div>
+
+    <div id="subtab_haproxy-user-management-introduction" class="tab-pane fade">
+        <div class="col-md-12">
+            <h1>{{ lang._('User Management') }}</h1>
+            <p>{{ lang._("Optionally HAProxy manages an internal list of users and groups, which can be used for HTTP Basic Authentication as well as access to HAProxy's internal statistic pages.") }}</p>
+            <ul>
+              <li>{{ lang._('%sUser:%s A username/password combination. Both secure (encrypted) and insecure (unencrypted) passwords can be used.') | format('<b>', '</b>') }}</li>
+              <li>{{ lang._('%sGroup:%s A optional list containing one or more users. Groups usually make it easier to manage permissions for a large number of users') | format('<b>', '</b>') }}</li>
+            </ul>
+            <p>{{ lang._('Note that users and groups must be selected from the Backend Pool or Public Service configuration in order to be used for authentication. In addition to this users and groups may also be used in Rules/Conditions.') }}</p>
+            <p>{{ lang._("For more information on HAProxy's %suser/group management%s see the %sofficial documentation%s.") | format('<b>', '</b>', '<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html#3.4" target="_blank">', '</a>') }}</p>
+            <br/>
+        </div>
+    </div>
+
+    <div id="subtab_haproxy-advanced-introduction" class="tab-pane fade">
+        <div class="col-md-12">
+            <h1>{{ lang._('Advanced Features') }}</h1>
+            <p>{{ lang._("Most of the time these features are not required, but in certain situations they will be handy:") }}</p>
+            <ul>
+              <li>{{ lang._("%sError Messages:%s Return a custom message instead of errors generated by HAProxy. Useful to overwrite HAProxy's internal error messages. The message must represent the full HTTP response and include required HTTP headers.") | format('<b>', '</b>') }}</li>
+              <li>{{ lang._("%sLua scripts:%s Include your own Lua code/scripts to extend HAProxy's functionality. The Lua code can be used in certain %sRules%s, for example.") | format('<b>', '</b>', '<b>', '</b>') }}</li>
+              <li>{{ lang._("%sMap Files:%s A map allows to map a data in input to an other one on output. For example, this makes it possible to map a large number of domains to backend pools without using the GUI. Map files need to be used in %sRules%s, otherwise they are ignored.") | format('<b>', '</b>', '<b>', '</b>') }}</li>
+              <li>{{ lang._("%sCPU Affinity Rules:%s This feature makes it possible to bind HAProxy's processes/threads to a specific CPU (or a CPU set). Furthermore it is possible to select CPU Affinity Rules in %sPublic Services%s to restrict them to a certain set of processes/threads/CPUs.") | format('<b>', '</b>', '<b>', '</b>') }}</li>
+            </ul>
+            <p>{{ lang._("For more details visit HAProxy's official documentation regarding the %sError Messages%s, %sLua Script%s and the %sMap Files%s features. More information on HAProxy's CPU Affinity is also available %shere%s, %shere%s and %shere%s.") | format('<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html#4-errorfile" target="_blank">', '</a>', '<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html#lua-load" target="_blank">', '</a>', '<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html#map" target="_blank">', '</a>' ,'<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html#cpu-map" target="_blank">', '</a>' ,'<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html#bind-process" target="_blank">', '</a>' ,'<a href="http://cbonte.github.io/haproxy-dconv/1.8/configuration.html#process" target="_blank">', '</a>') }}</p>
+            <br/>
+        </div>
+    </div>
+
+    {# add automatically generated tabs #}
     {% for tab in mainForm['tabs']|default([]) %}
         {% if tab['subtabs']|default(false) %}
             {# Tab with dropdown #}
@@ -374,8 +648,8 @@ POSSIBILITY OF SUCH DAMAGE.
             <thead>
             <tr>
                 <th data-column-id="enabled" data-width="6em" data-type="string" data-formatter="rowtoggle">{{ lang._('Enabled') }}</th>
-                <th data-column-id="frontendid" data-type="number"  data-visible="false">{{ lang._('Frontend ID') }}</th>
-                <th data-column-id="name" data-type="string">{{ lang._('Frontend Name') }}</th>
+                <th data-column-id="frontendid" data-type="number"  data-visible="false">{{ lang._('Public Service ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Public Service Name') }}</th>
                 <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
                 <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
                 <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
@@ -409,8 +683,8 @@ POSSIBILITY OF SUCH DAMAGE.
             <thead>
             <tr>
                 <th data-column-id="enabled" data-width="6em" data-type="string" data-formatter="rowtoggle">{{ lang._('Enabled') }}</th>
-                <th data-column-id="backendid" data-type="number"  data-visible="false">{{ lang._('Backend ID') }}</th>
-                <th data-column-id="name" data-type="string">{{ lang._('Backend Name') }}</th>
+                <th data-column-id="backendid" data-type="number"  data-visible="false">{{ lang._('Backend Pool ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Backend Pool Name') }}</th>
                 <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
                 <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
                 <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
@@ -443,7 +717,8 @@ POSSIBILITY OF SUCH DAMAGE.
         <table id="grid-servers" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogServer">
             <thead>
             <tr>
-                <th data-column-id="serverid" data-type="number"  data-visible="false">{{ lang._('Server id') }}</th>
+                <th data-column-id="enabled" data-width="6em" data-type="string" data-formatter="rowtoggle">{{ lang._('Enabled') }}</th>
+                <th data-column-id="serverid" data-type="number"  data-visible="false">{{ lang._('Server ID') }}</th>
                 <th data-column-id="name" data-type="string">{{ lang._('Server Name') }}</th>
                 <th data-column-id="address" data-type="string">{{ lang._('Server Address') }}</th>
                 <th data-column-id="port" data-type="string">{{ lang._('Server Port') }}</th>
@@ -479,8 +754,8 @@ POSSIBILITY OF SUCH DAMAGE.
         <table id="grid-healthchecks" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogHealthcheck">
             <thead>
             <tr>
-                <th data-column-id="healthcheckid" data-type="number"  data-visible="false">{{ lang._('Health Check ID') }}</th>
-                <th data-column-id="name" data-type="string">{{ lang._('Health Check Name') }}</th>
+                <th data-column-id="healthcheckid" data-type="number"  data-visible="false">{{ lang._('Health Monitor ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Health Monitor Name') }}</th>
                 <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
                 <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
                 <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
@@ -513,8 +788,8 @@ POSSIBILITY OF SUCH DAMAGE.
         <table id="grid-actions" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogAction">
             <thead>
             <tr>
-                <th data-column-id="actionid" data-type="number"  data-visible="false">{{ lang._('Action ID') }}</th>
-                <th data-column-id="name" data-type="string">{{ lang._('Action Name') }}</th>
+                <th data-column-id="actionid" data-type="number"  data-visible="false">{{ lang._('Rule ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Rule Name') }}</th>
                 <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
                 <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
                 <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
@@ -547,8 +822,8 @@ POSSIBILITY OF SUCH DAMAGE.
         <table id="grid-acls" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogAcl">
             <thead>
             <tr>
-                <th data-column-id="aclid" data-type="number"  data-visible="false">{{ lang._('ACL id') }}</th>
-                <th data-column-id="name" data-type="string">{{ lang._('ACL Name') }}</th>
+                <th data-column-id="aclid" data-type="number"  data-visible="false">{{ lang._('Condition ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Condition Name') }}</th>
                 <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
                 <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
                 <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
@@ -576,13 +851,83 @@ POSSIBILITY OF SUCH DAMAGE.
         </div>
     </div>
 
+    <div id="users" class="tab-pane fade">
+        <!-- tab page "users" -->
+        <table id="grid-users" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogUser">
+            <thead>
+            <tr>
+                <th data-column-id="enabled" data-width="6em" data-type="string" data-formatter="rowtoggle">{{ lang._('Enabled') }}</th>
+                <th data-column-id="userid" data-type="number"  data-visible="false">{{ lang._('User ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Username') }}</th>
+                <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
+                <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
+                <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td></td>
+                <td>
+                    <button data-action="add" type="button" class="btn btn-xs btn-default"><span class="fa fa-plus"></span></button>
+                    <button data-action="deleteSelected" type="button" class="btn btn-xs btn-default"><span class="fa fa-trash-o"></span></button>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+        <!-- apply button -->
+        <div class="col-md-12">
+            <hr/>
+            <button class="btn btn-primary" id="reconfigureAct-users" type="button"><b>{{ lang._('Apply') }}</b><i id="reconfigureAct_progress" class=""></i></button>
+            <button class="btn btn-primary" id="configtestAct-users" type="button"><b>{{ lang._('Test syntax') }}</b><i id="configtestAct_progress" class=""></i></button>
+            <br/>
+            <br/>
+        </div>
+    </div>
+
+    <div id="groups" class="tab-pane fade">
+        <!-- tab page "groups" -->
+        <table id="grid-groups" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogGroup">
+            <thead>
+            <tr>
+                <th data-column-id="enabled" data-width="6em" data-type="string" data-formatter="rowtoggle">{{ lang._('Enabled') }}</th>
+                <th data-column-id="groupid" data-type="number"  data-visible="false">{{ lang._('Group ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Group') }}</th>
+                <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
+                <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
+                <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td></td>
+                <td>
+                    <button data-action="add" type="button" class="btn btn-xs btn-default"><span class="fa fa-plus"></span></button>
+                    <button data-action="deleteSelected" type="button" class="btn btn-xs btn-default"><span class="fa fa-trash-o"></span></button>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+        <!-- apply button -->
+        <div class="col-md-12">
+            <hr/>
+            <button class="btn btn-primary" id="reconfigureAct-groups" type="button"><b>{{ lang._('Apply') }}</b><i id="reconfigureAct_progress" class=""></i></button>
+            <button class="btn btn-primary" id="configtestAct-groups" type="button"><b>{{ lang._('Test syntax') }}</b><i id="configtestAct_progress" class=""></i></button>
+            <br/>
+            <br/>
+        </div>
+    </div>
+
     <div id="luas" class="tab-pane fade">
         <!-- tab page "luas" -->
         <table id="grid-luas" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogLua">
             <thead>
             <tr>
                 <th data-column-id="enabled" data-width="6em" data-type="string" data-formatter="rowtoggle">{{ lang._('Enabled') }}</th>
-                <th data-column-id="luaid" data-type="number"  data-visible="false">{{ lang._('Lua ID') }}</th>
+                <th data-column-id="luaid" data-type="number"  data-visible="false">{{ lang._('Lua Script ID') }}</th>
                 <th data-column-id="name" data-type="string">{{ lang._('Lua Script Name') }}</th>
                 <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
                 <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
@@ -616,8 +961,8 @@ POSSIBILITY OF SUCH DAMAGE.
         <table id="grid-errorfiles" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogErrorfile">
             <thead>
             <tr>
-                <th data-column-id="errorfileid" data-type="number"  data-visible="false">{{ lang._('Error File ID') }}</th>
-                <th data-column-id="name" data-type="string">{{ lang._('Name') }}</th>
+                <th data-column-id="errorfileid" data-type="number"  data-visible="false">{{ lang._('Error Message ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Error Message Name') }}</th>
                 <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
                 <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
                 <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
@@ -644,14 +989,89 @@ POSSIBILITY OF SUCH DAMAGE.
             <br/>
         </div>
     </div>
+
+    <div id="mapfiles" class="tab-pane fade">
+        <!-- tab page "mapfiles" -->
+        <table id="grid-mapfiles" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogMapfile">
+            <thead>
+            <tr>
+                <th data-column-id="mapfileid" data-type="number"  data-visible="false">{{ lang._('Map File ID') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Map File Name') }}</th>
+                <th data-column-id="description" data-type="string">{{ lang._('Description') }}</th>
+                <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
+                <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td></td>
+                <td>
+                    <button data-action="add" type="button" class="btn btn-xs btn-default"><span class="fa fa-plus"></span></button>
+                    <button data-action="deleteSelected" type="button" class="btn btn-xs btn-default"><span class="fa fa-trash-o"></span></button>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+        <!-- apply button -->
+        <div class="col-md-12">
+            <hr/>
+            <button class="btn btn-primary" id="reconfigureAct-mapfiles" type="button"><b>{{ lang._('Apply') }}</b><i id="reconfigureAct_progress" class=""></i></button>
+            <button class="btn btn-primary" id="configtestAct-mapfiles" type="button"><b>{{ lang._('Test syntax') }}</b><i id="configtestAct_progress" class=""></i></button>
+            <br/>
+            <br/>
+        </div>
+    </div>
+
+    <div id="cpus" class="tab-pane fade">
+        <!-- tab page "cpus" -->
+        <table id="grid-cpus" class="table table-condensed table-hover table-striped table-responsive" data-editDialog="DialogCpu">
+            <thead>
+            <tr>
+                <th data-column-id="cpuid" data-type="number"  data-visible="false">{{ lang._('CPU Rule ID') }}</th>
+                <th data-column-id="enabled" data-width="6em" data-type="string" data-formatter="rowtoggle">{{ lang._('Enabled') }}</th>
+                <th data-column-id="name" data-type="string">{{ lang._('Name') }}</th>
+                <th data-column-id="process_id" data-type="string">{{ lang._('Process ID') }}</th>
+                <th data-column-id="thread_id" data-type="string">{{ lang._('Thread ID') }}</th>
+                <th data-column-id="cpu_id" data-type="string">{{ lang._('CPU ID') }}</th>
+                <th data-column-id="commands" data-width="7em" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>
+                <th data-column-id="uuid" data-type="string" data-identifier="true"  data-visible="false">{{ lang._('ID') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td></td>
+                <td>
+                    <button data-action="add" type="button" class="btn btn-xs btn-default"><span class="fa fa-plus"></span></button>
+                    <button data-action="deleteSelected" type="button" class="btn btn-xs btn-default"><span class="fa fa-trash-o"></span></button>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+        <!-- apply button -->
+        <div class="col-md-12">
+            <hr/>
+            <button class="btn btn-primary" id="reconfigureAct-cpus" type="button"><b>{{ lang._('Apply') }}</b><i id="reconfigureAct_progress" class=""></i></button>
+            <button class="btn btn-primary" id="configtestAct-cpus" type="button"><b>{{ lang._('Test syntax') }}</b><i id="configtestAct_progress" class=""></i></button>
+            <br/>
+            <br/>
+        </div>
+    </div>
 </div>
 
 {# include dialogs #}
-{{ partial("layout_partials/base_dialog",['fields':formDialogFrontend,'id':'DialogFrontend','label':lang._('Edit Frontend')])}}
-{{ partial("layout_partials/base_dialog",['fields':formDialogBackend,'id':'DialogBackend','label':lang._('Edit Backend')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogFrontend,'id':'DialogFrontend','label':lang._('Edit Public Service')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogBackend,'id':'DialogBackend','label':lang._('Edit Backend Pool')])}}
 {{ partial("layout_partials/base_dialog",['fields':formDialogServer,'id':'DialogServer','label':lang._('Edit Server')])}}
-{{ partial("layout_partials/base_dialog",['fields':formDialogHealthcheck,'id':'DialogHealthcheck','label':lang._('Edit Health Check')])}}
-{{ partial("layout_partials/base_dialog",['fields':formDialogAction,'id':'DialogAction','label':lang._('Edit Action')])}}
-{{ partial("layout_partials/base_dialog",['fields':formDialogAcl,'id':'DialogAcl','label':lang._('Edit ACL')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogHealthcheck,'id':'DialogHealthcheck','label':lang._('Edit Health Monitor')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogAction,'id':'DialogAction','label':lang._('Edit Rule')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogAcl,'id':'DialogAcl','label':lang._('Edit Condition')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogUser,'id':'DialogUser','label':lang._('Edit User')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogGroup,'id':'DialogGroup','label':lang._('Edit Group')])}}
 {{ partial("layout_partials/base_dialog",['fields':formDialogLua,'id':'DialogLua','label':lang._('Edit Lua Script')])}}
-{{ partial("layout_partials/base_dialog",['fields':formDialogErrorfile,'id':'DialogErrorfile','label':lang._('Edit Error File')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogErrorfile,'id':'DialogErrorfile','label':lang._('Edit Error Message')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogMapfile,'id':'DialogMapfile','label':lang._('Edit Map File')])}}
+{{ partial("layout_partials/base_dialog",['fields':formDialogCpu,'id':'DialogCpu','label':lang._('Edit CPU Affinity Rule')])}}

@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coypright (C) 2016-2017 Franco Fichtner <franco@opnsense.org>
- * Copyright (C) 2008 Shrew Soft Inc
+ * Coypright (C) 2016-2018 Franco Fichtner <franco@opnsense.org>
+ * Copyright (C) 2008 Shrew Soft Inc. <mgrooms@shrew.net>
  * Copyright (C) 2008 Ermal Luçi
  * Copyright (C) 2004 Scott Ullrich <sullrich@gmail.com>
  * Copyright (C) 2003-2004 Manuel Kasper <mk@neon1.net>
@@ -127,6 +127,8 @@ function if_pptp_configure_do()
                 return 1;
             }
 
+            $selfip = get_interface_ip($pptpdcfg['interface']);
+
             $iprange = $pptpdcfg['remoteip'] . ' ';
             $iprange .= long2ip32(ip2long($pptpdcfg['remoteip']) + $pptpdcfg['n_pptp_units'] - 1);
 
@@ -158,7 +160,7 @@ EOD;
                 }
                 $mpdconf .= "\n";
             } elseif (isset($config['dnsmasq']['enable']) || isset($config['unbound']['enable'])) {
-                $mpdconf .= "  set ipcp dns " . get_interface_ip("lan");
+                $mpdconf .= "  set ipcp dns {$selfip}";
                 if (isset($syscfg['dnsserver'][0])) {
                     $mpdconf .= " " . $syscfg['dnsserver'][0];
                 }
@@ -195,7 +197,7 @@ EOD;
   set link enable chap-msv2
   set link mtu 1460
   set link keep-alive 10 60
-  set pptp self {$pptpdcfg['localip']}
+  set pptp self {$selfip}
   set link enable incoming
 
 EOD;
@@ -283,11 +285,15 @@ function if_pptp_interfaces()
         $oic['descr'] = 'pptp';
         $mask = !empty($config['pptpd']['pptp_subnet']) ? $config['pptpd']['pptp_subnet'] : 32;
         if (isset($config['pptpd']['n_pptp_units']) && is_numeric($config['pptpd']['n_pptp_units'])) {
-            $pptp_subnets = ip_range_to_subnet_array($config['pptpd']['remoteip'],
-              long2ip32(ip2long($config['pptpd']['remoteip'])+($config['pptpd']['n_pptp_units']-1)));
+            $pptp_subnets = ip_range_to_subnet_array(
+                $config['pptpd']['remoteip'],
+                long2ip32(ip2long($config['pptpd']['remoteip'])+($config['pptpd']['n_pptp_units']-1))
+            );
         } else {
-            $pptp_subnets = ip_range_to_subnet_array($config['pptpd']['remoteip'],
-              long2ip32(ip2long($config['pptpd']['remoteip'])));
+            $pptp_subnets = ip_range_to_subnet_array(
+                $config['pptpd']['remoteip'],
+                long2ip32(ip2long($config['pptpd']['remoteip']))
+            );
         }
         foreach ($pptp_subnets as $pptp_subnet) {
             $snparts = explode("/", $pptp_subnet);

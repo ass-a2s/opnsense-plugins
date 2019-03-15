@@ -58,12 +58,12 @@ function zabbixagent_services()
     }
 
     $services[] = array(
-        'description' => gettext('Enterprise-class open source distributed monitoring agent'),
+        'description' => gettext('Zabbix Agent'),
         'pidfile' => '/var/run/zabbix/zabbix_agentd.pid',
         'configd' => array(
-            'restart' => array('zabbix_agentd restart'),
-            'start' => array('zabbix_agentd start'),
-            'stop' => array('zabbix_agentd stop'),
+            'restart' => array('zabbixagent restart'),
+            'start' => array('zabbixagent start'),
+            'stop' => array('zabbixagent stop'),
         ),
         'name' => 'zabbix_agentd',
     );

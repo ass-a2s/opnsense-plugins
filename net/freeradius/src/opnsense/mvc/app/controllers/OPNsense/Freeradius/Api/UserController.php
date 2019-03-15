@@ -1,7 +1,7 @@
 <?php
 /**
  *    Copyright (C) 2015 - 2017 Deciso B.V.
- *    Copyright (C) 2017 Michael Muenz
+ *    Copyright (C) 2017 Michael Muenz <m.muenz@gmail.com>
  *
  *    All rights reserved.
  *
@@ -37,8 +37,8 @@ use \OPNsense\Base\UIModelGrid;
 
 class UserController extends ApiMutableModelControllerBase
 {
-    static protected $internalModelName = 'User';
-    static protected $internalModelClass = '\OPNsense\Freeradius\User';
+    protected static $internalModelName = 'User';
+    protected static $internalModelClass = '\OPNsense\Freeradius\User';
 
     public function getAction()
     {

@@ -1,7 +1,7 @@
 <?php
 /**
  *    Copyright (C) 2015 - 2017 Deciso B.V.
- *    Copyright (C) 2017 Michael Muenz
+ *    Copyright (C) 2017 Michael Muenz <m.muenz@gmail.com>
  *
  *    All rights reserved.
  *
@@ -37,8 +37,8 @@ use \OPNsense\Base\UIModelGrid;
 
 class ClientController extends ApiMutableModelControllerBase
 {
-    static protected $internalModelName = 'Client';
-    static protected $internalModelClass = '\OPNsense\Freeradius\Client';
+    protected static $internalModelName = 'Client';
+    protected static $internalModelClass = '\OPNsense\Freeradius\Client';
     public function getAction()
     {
         // define list of configurable settings

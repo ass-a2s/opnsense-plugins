@@ -2,7 +2,7 @@
 
 /*
     Copyright (C) 2014-2016 Deciso B.V.
-    Copyright (C) 2003-2005 Manuel Kasper <mk@neon1.net>.
+    Copyright (C) 2003-2005 Manuel Kasper <mk@neon1.net>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -55,13 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $service_hook = 'pptpd';
 include("head.inc");
 $main_buttons = array(
-    array('label'=>gettext("add user"), 'href'=>'vpn_pptp_users_edit.php'),
+    array('label' => gettext('Add'), 'href' => 'vpn_pptp_users_edit.php'),
 );
 
 ?>
 
 <body>
-  <script type="text/javascript">
+  <script>
   $( document ).ready(function() {
     // delete host action
     $(".act_delete_user").click(function(event){
@@ -109,7 +109,7 @@ $main_buttons = array(
                     <tr>
                       <td><?=gettext("Username");?></td>
                       <td><?=gettext("IP address");?></td>
-                      <td></td>
+                      <td class="text-nowrap"></td>
                     </tr>
 <?php
                     $i = 0;
@@ -117,9 +117,9 @@ $main_buttons = array(
                     <tr>
                       <td><?=htmlspecialchars($secretent['name']);?></td>
                       <td><?=htmlspecialchars($secretent['ip']);?></td>
-                      <td>
-                         <a href="vpn_pptp_users_edit.php?id=<?=$i;?>" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-edit"></span></a>
-                         <button data-id="<?=$i;?>" type="button" class="act_delete_user btn btn-xs btn-default"><span class="fa fa-trash text-muted"></span></button>
+                      <td class="text-nowrap">
+                         <a href="vpn_pptp_users_edit.php?id=<?=$i;?>" class="btn btn-xs btn-default"><i class="fa fa-pencil fa-fw"></i></a>
+                         <button data-id="<?=$i;?>" type="button" class="act_delete_user btn btn-xs btn-default"><i class="fa fa-trash fa-fw"></i></button>
                       </td>
                     </tr>
 <?php

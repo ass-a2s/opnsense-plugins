@@ -4,7 +4,7 @@
     Copyright (C) 2014-2016 Deciso B.V.
     Copyright (C) 2009 Ermal Luçi
     Copyright (C) 2004 Scott Ullrich <sullrich@gmail.com>
-    Copyright (C) 2003-2004 Manuel Kasper <mk@neon1.net>.
+    Copyright (C) 2003-2004 Manuel Kasper <mk@neon1.net>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -55,12 +55,12 @@ include("head.inc");
 legacy_html_escape_form_data($a_igmpproxy);
 
 $main_buttons = array(
-    array('label' => gettext('Add a new IGMP entry'), 'href' => 'services_igmpproxy_edit.php'),
+    array('label' => gettext('Add'), 'href' => 'services_igmpproxy_edit.php'),
 );
 
 ?>
 <body>
-  <script type="text/javascript">
+  <script>
   $( document ).ready(function() {
     // delete host action
     $(".act_delete_entry").click(function(event){
@@ -103,7 +103,7 @@ $main_buttons = array(
                       <td><?=gettext("Type");?></td>
                       <td><?=gettext("Values");?></td>
                       <td><?=gettext("Description");?></td>
-                      <td></td>
+                      <td class="text-nowrap"></td>
                     </tr>
                   </thead>
                   <tbody>
@@ -121,9 +121,9 @@ $main_buttons = array(
                         <?=$addresses;?> <?=count($addresses) < 10 ? "" : "...";?>
                       </td>
                       <td><?=$igmpentry['descr'];?></td>
-                      <td>
-                         <a href="services_igmpproxy_edit.php?id=<?=$i;?>" title="<?=gettext("Edit this IGMP entry"); ?>" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-pencil"></span></a>
-                         <a href="#" data-id="<?=$i;?>" class="act_delete_entry"><button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash text-muted"></span></button></a>
+                      <td class="text-nowrap">
+                         <a href="services_igmpproxy_edit.php?id=<?=$i;?>" title="<?=gettext("Edit this IGMP entry"); ?>" class="btn btn-default btn-xs"><i class="fa fa-pencil fa-fw"></i></a>
+                         <a href="#" data-id="<?=$i;?>" class="act_delete_entry btn btn-xs btn-default"><i class="fa fa-trash fa-fw"></i></a>
                       </td>
                     </tr>
 <?php

@@ -1,7 +1,7 @@
 {#
 
-OPNsense® is Copyright © 2014 – 2016 by Deciso B.V.
-Copyright (C) 2017 Michael Muenz
+OPNsense® is Copyright © 2014 – 2017 by Deciso B.V.
+Copyright (C) 2017 Michael Muenz <m.muenz@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -27,7 +27,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #}
 
-<script type="text/javascript">
+<script>
 
     $( document ).ready(function() {
         /*************************************************************************************************************
@@ -70,6 +70,29 @@ POSSIBILITY OF SUCH DAMAGE.
             });
         });
 
+      /*************************************************************************************************************
+       * context driven input dialogs
+       *************************************************************************************************************/
+      ajaxGet(url='/api/freeradius/general/get', sendData={}, callback=function(data,status){
+          // since our general data doesn't change during input of new users, we can control the dialog inputs
+          // at once after load. No need for an "onShow" type of event here,
+          // since our changes aren't driven by the dialog form itself.
+          if (data.general != undefined) {
+              $("#frm_dialogEditFreeRADIUSUser tr").each(function () {
+                  var this_item_name = $(this).attr('id');
+                  var this_item = $(this);
+                  if (this_item_name != undefined) {
+                      $.each(data.general, function(setting_key, setting_value){
+                          var search_item = 'row_user.' + setting_key +'_';
+                          if (this_item_name.startsWith(search_item) && setting_value == '0') {
+                              // since our form tr rows are visible by default, we only have to hide what isn't needed
+                              this_item.hide();
+                          }
+                      });
+                  }
+              });
+          }
+      });
 
     });
 
@@ -87,11 +110,11 @@ POSSIBILITY OF SUCH DAMAGE.
             <tr>
                 <th data-column-id="enabled" data-type="string" data-formatter="rowtoggle">{{ lang._('Enabled') }}</th>
                 <th data-column-id="username" data-type="string" data-visible="true">{{ lang._('Username') }}</th>
-                <th data-column-id="password" data-type="string" data-visible="true">{{ lang._('Password') }}</th>
+                <th data-column-id="password" data-type="string" data-visible="false">{{ lang._('Password') }}</th>
                 <th data-column-id="description" data-type="string" data-visible="true">{{ lang._('Description') }}</th>
                 <th data-column-id="ip" data-type="string" data-visible="true">{{ lang._('IP Address') }}</th>
-                <th data-column-id="subnet" data-type="string" data-visible="true">{{ lang._('Subnet') }}</th>
-                <th data-column-id="vlan" data-type="string" data-visible="true">{{ lang._('VLAN ID') }}</th>
+                <th data-column-id="subnet" data-type="string" data-visible="false">{{ lang._('Subnet') }}</th>
+                <th data-column-id="vlan" data-type="string" data-visible="false">{{ lang._('VLAN ID') }}</th>
                 <th data-column-id="uuid" data-type="string" data-identifier="true" data-visible="false">{{ lang._('ID') }}</th>
                 <th data-column-id="commands" data-formatter="commands" data-sortable="false">{{ lang._('Commands') }}</th>            </tr>
             </thead>

@@ -1,31 +1,31 @@
 <?php
 
 /*
-    Copyright (C) 2014-2015 Deciso B.V.
-    Copyright (C) 2008 Ermal Luçi
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    1. Redistributions of source code must retain the above copyright notice,
-       this list of conditions and the following disclaimer.
-
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-
-    THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
-    INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-    AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-    AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
-    OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (C) 2014-2015 Deciso B.V.
+ * Copyright (C) 2008 Ermal Luçi
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 require_once("guiconfig.inc");
 require_once("services.inc") ;
@@ -38,7 +38,7 @@ function is_dyndns_username($uname)
 {
     if (!is_string($uname)) {
         return false;
-    } elseif (preg_match("/[^a-z0-9\-.@_:]/i", $uname)) {
+    } elseif (preg_match("/[^a-z0-9\-.@_:+]/i", $uname)) {
         return false;
     } else {
         return true;
@@ -102,8 +102,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     do_input_validation($pconfig, $reqdfields, $reqdfieldsn, $input_errors);
 
     if (isset($pconfig['host']) && in_array('host', $reqdfields)) {
-        /* Namecheap can have a @. in hostname */
-        if ($pconfig['type'] == "namecheap" && substr($pconfig['host'], 0, 2) == '@.') {
+        /* Namecheap can have a @. or *. in hostname */
+        if ($pconfig['type'] == "namecheap" && (substr($pconfig['host'], 0, 2) == '@.' || substr($pconfig['host'], 0, 2) == '*.')) {
             $host_to_check = substr($pconfig['host'], 2);
         } else {
             $host_to_check = $pconfig['host'];
@@ -178,7 +178,7 @@ include("head.inc");
 ?>
 <body>
 <?php include("fbegin.inc"); ?>
- <script type="text/javascript">
+ <script>
   $( document ).ready(function() {
       $("#type").change(function(){
           $(".opt_field").hide();
@@ -188,6 +188,7 @@ include("head.inc");
                 $(".type_custom").show();
                 break;
               case "route53":
+              case "route53-v6":
                 $(".type_route53").show();
                 break;
               default:
@@ -210,10 +211,10 @@ include("head.inc");
               <div class="table-responsive">
                 <table class="table table-striped opnsense_standard_table_form">
                   <tr>
-                    <td width="22%"><strong><?= gettext("Dynamic DNS client") ?></strong></td>
-                    <td width="78%" align="right">
+                    <td style="width:22%"><strong><?= gettext("Dynamic DNS client") ?></strong></td>
+                    <td style="width:78%; text-align:right">
                       <small><?= gettext("full help") ?> </small>
-                      <i class="fa fa-toggle-off text-danger"  style="cursor: pointer;" id="show_all_help_page" type="button"></i>
+                      <i class="fa fa-toggle-off text-danger"  style="cursor: pointer;" id="show_all_help_page"></i>
                     </td>
                   </tr>
                   <tr>
@@ -268,7 +269,7 @@ include("head.inc");
 <?php
                        endforeach;?>
                        </select>
-                       <div class="hidden" for="help_for_requestif">
+                       <div class="hidden" data-for="help_for_requestif">
                          <?= gettext("Note: This is almost always the same as the Interface to Monitor.");?>
                        </div>
                     </td>
@@ -277,7 +278,7 @@ include("head.inc");
                     <td><a id="help_for_host" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?= gettext("Hostname") ?></td>
                     <td>
                       <input name="host" type="text" id="host" value="<?= $pconfig['host'] ?>" />
-                      <div class="hidden" for="help_for_host">
+                      <div class="hidden" data-for="help_for_host">
                         <?= gettext("Enter the complete host/domain name. example: myhost.dyndns.org") ?><br />
                         <?= gettext("For he.net tunnelbroker, enter your tunnel ID") ?>
                       </div>
@@ -287,7 +288,7 @@ include("head.inc");
                     <td><a id="help_for_mx" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?= gettext("MX") ?></td>
                     <td>
                       <input name="mx" type="text" id="mx" value="<?= $pconfig['mx'] ?>" />
-                      <div class="hidden" for="help_for_mx">
+                      <div class="hidden" data-for="help_for_mx">
                         <?= gettext("Note: With a dynamic DNS service you can only use a hostname, not an IP address.") ?>
                         <br />
                         <?= gettext("Set this option only if you need a special MX record. Not all services support this.") ?>
@@ -321,7 +322,7 @@ include("head.inc");
                     <td><a id="help_for_username" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?= gettext("Username") ?></td>
                     <td>
                       <input name="username" type="text" id="username" value="<?= $pconfig['username'] ?>" />
-                      <div class="hidden" for="help_for_username">
+                      <div class="hidden" data-for="help_for_username">
                         <?= gettext("Username is required for all types except Namecheap, FreeDNS and Custom Entries.");?>
                         <br /><?= gettext('Route 53: Enter your Access Key ID.') ?>
                         <br /><?= gettext('Duck DNS: Enter your Token.') ?>
@@ -333,7 +334,7 @@ include("head.inc");
                     <td><a id="help_for_password" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?= gettext("Password") ?></td>
                     <td>
                       <input name="password" type="password" id="password" value="<?= $pconfig['password'] ?>" />
-                      <div class="hidden" for="help_for_password">
+                      <div class="hidden" data-for="help_for_password">
                         <?=gettext('FreeDNS (freedns.afraid.org): Enter your "Authentication Token" provided by FreeDNS.') ?>
                         <br /><?= gettext('Route 53: Enter your Secret Access Key.') ?>
                         <br /><?= gettext('Duck DNS: Leave blank.') ?>
@@ -344,7 +345,7 @@ include("head.inc");
                     <td><a id="help_for_zoneid" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?= gettext("Zone ID") ?></td>
                     <td>
                       <input name="zoneid" type="text" id="zoneid" value="<?= $pconfig['zoneid'] ?>" />
-                      <div class="hidden" for="help_for_zoneid">
+                      <div class="hidden" data-for="help_for_zoneid">
                         <?= gettext("Enter Zone ID that you received when you created your domain in Route 53.") ?>
                       </div>
                     </td>
@@ -353,7 +354,7 @@ include("head.inc");
                     <td><a id="help_for_updateurl" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("Update URL") ?></td>
                     <td>
                       <input name="updateurl" type="text" id="updateurl" value="<?= $pconfig['updateurl'] ?>" />
-                      <div class="hidden" for="help_for_updateurl">
+                      <div class="hidden" data-for="help_for_updateurl">
                         <?= gettext("This is the only field required by for Custom Dynamic DNS, and is only used by Custom Entries.") ?>
                         <br />
                         <?= gettext("If you need the new IP to be included in the request, put %IP% in its place.") ?>
@@ -364,7 +365,7 @@ include("head.inc");
                     <td><a id="help_for_resultmatch" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?= gettext("Result Match") ?></td>
                     <td>
                       <textarea name="resultmatch" class="formpre" id="resultmatch" cols="65" rows="7"><?= $pconfig['resultmatch'] ?></textarea>
-                      <div class="hidden" for="help_for_resultmatch">
+                      <div class="hidden" data-for="help_for_resultmatch">
                         <?= gettext("This field is only used by Custom Dynamic DNS Entries.") ?>
                         <br />
                         <?= gettext("This field should be identical to what your dynamic DNS Provider will return if the update succeeds, leave it blank to disable checking of returned results.");?>
@@ -381,7 +382,7 @@ include("head.inc");
                     <td><a id="help_for_ttl" href="#" class="showhelp"><i class="fa fa-info-circle"></i></a> <?=gettext("TTL");?></td>
                     <td>
                       <input name="ttl" type="text" id="ttl" value="<?= $pconfig['ttl'] ?>" />
-                      <div class="hidden" for="help_for_ttl">
+                      <div class="hidden" data-for="help_for_ttl">
                         <?= gettext("Choose TTL for your dns record.") ?>
                       </div>
                     </td>

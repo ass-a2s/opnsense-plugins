@@ -30,7 +30,7 @@ function tinc_enabled()
 {
     $mdl = new \OPNsense\Tinc\Tinc();
 
-    foreach ($mdl->networks->network->__items as $network) {
+    foreach ($mdl->networks->network->iterateItems() as $network) {
         if ($network->enabled == '1') {
             return true;
         }
@@ -44,12 +44,12 @@ function tinc_syslog()
     $logfacilities = array();
 
     $logfacilities['tinc'] = array(
-        'facility' => array(),
+        'facility' => array('tincd'),
         'remote' => 'vpn',
     );
     $mdl = new \OPNsense\Tinc\Tinc();
 
-    foreach ($mdl->networks->network->__items as $network) {
+    foreach ($mdl->networks->network->iterateItems() as $network) {
         if ($network->enabled == '1') {
             $logfacilities['tinc']['facility'][] = 'tinc.'.$network->name;
         }

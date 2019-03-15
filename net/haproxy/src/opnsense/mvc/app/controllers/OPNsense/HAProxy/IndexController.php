@@ -1,8 +1,8 @@
 <?php
+
 /**
  *    Copyright (C) 2016 Frank Wall
  *    Copyright (C) 2015 Deciso B.V.
- *
  *    All rights reserved.
  *
  *    Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,11 @@
  *    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *    POSSIBILITY OF SUCH DAMAGE.
- *
  */
+
 namespace OPNsense\HAProxy;
+
+use OPNsense\HAProxy\HAProxy;
 
 /**
  * Class IndexController
@@ -41,8 +43,6 @@ class IndexController extends \OPNsense\Base\IndexController
      */
     public function indexAction()
     {
-        // set page title
-        $this->view->title = gettext("HAProxy Load Balancer");
         // include form definitions
         $this->view->mainForm = $this->getForm("main");
         $this->view->formDialogFrontend = $this->getForm("dialogFrontend");
@@ -51,8 +51,15 @@ class IndexController extends \OPNsense\Base\IndexController
         $this->view->formDialogHealthcheck = $this->getForm("dialogHealthcheck");
         $this->view->formDialogAction = $this->getForm("dialogAction");
         $this->view->formDialogAcl = $this->getForm("dialogAcl");
+        $this->view->formDialogUser = $this->getForm("dialogUser");
+        $this->view->formDialogGroup = $this->getForm("dialogGroup");
         $this->view->formDialogLua = $this->getForm("dialogLua");
         $this->view->formDialogErrorfile = $this->getForm("dialogErrorfile");
+        $this->view->formDialogMapfile = $this->getForm("dialogMapfile");
+        $this->view->formDialogCpu = $this->getForm("dialogCpu");
+        // set additional view parameters
+        $mdlHAProxy = new \OPNsense\HAProxy\HAProxy();
+        $this->view->showIntro = (string)$mdlHAProxy->general->showIntro;
         // pick the template to serve
         $this->view->pick('OPNsense/HAProxy/index');
     }

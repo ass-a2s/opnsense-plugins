@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2017 Franco Fichtner <franco@opnsense.org>
+# Copyright (c) 2015-2019 Franco Fichtner <franco@opnsense.org>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,6 +27,10 @@ all: check
 
 LOCALBASE?=		/usr/local
 PKG!=			which pkg || echo true
+ARCH!=			uname -p
+
+PLUGIN_ARCH?=		${ARCH}
+PLUGIN_PHP?=		71
 
 PLUGIN_DESC=		pkg-descr
 PLUGIN_SCRIPTS=		+PRE_INSTALL +POST_INSTALL \
@@ -51,11 +55,20 @@ check:
 PLUGIN_DEVEL?=		yes
 
 PLUGIN_PREFIX?=		os-
-.if "${PLUGIN_DEVEL}" != ""
 PLUGIN_SUFFIX?=		-devel
-.endif
 
+PLUGIN_PKGNAMES=	${PLUGIN_PREFIX}${PLUGIN_NAME}${PLUGIN_SUFFIX} \
+			${PLUGIN_PREFIX}${PLUGIN_NAME}
+.for CONFLICT in ${PLUGIN_CONFLICTS}
+PLUGIN_PKGNAMES+=	${PLUGIN_PREFIX}${CONFLICT}${PLUGIN_SUFFIX} \
+			${PLUGIN_PREFIX}${CONFLICT}
+.endfor
+
+.if "${PLUGIN_DEVEL}" != ""
 PLUGIN_PKGNAME=		${PLUGIN_PREFIX}${PLUGIN_NAME}${PLUGIN_SUFFIX}
+.else
+PLUGIN_PKGNAME=		${PLUGIN_PREFIX}${PLUGIN_NAME}
+.endif
 
 .if "${PLUGIN_REVISION}" != "" && "${PLUGIN_REVISION}" != "0"
 PLUGIN_PKGVERSION=	${PLUGIN_VERSION}_${PLUGIN_REVISION}
@@ -131,6 +144,11 @@ scripts-auto:
 			cat ${TEMPLATESDIR}/models | \
 			    sed "s:%%ARG%%:$${FILE#./}:g" >> \
 			    ${DESTDIR}/+POST_INSTALL; \
+		done; \
+		for SCRIPT in +POST_INSTALL +POST_DEINSTALL; do \
+			cat ${TEMPLATESDIR}/configure | \
+			    sed "s:%%ARG%%:$${SCRIPT#+}:g" >> \
+			    ${DESTDIR}/$${SCRIPT}; \
 		done; \
 	fi
 	@if [ -d ${.CURDIR}/src/opnsense/service/templates ]; then \
@@ -208,20 +226,25 @@ package: check
 .for DEP in ${PLUGIN_DEPENDS}
 	@if ! ${PKG} info ${DEP} > /dev/null; then ${PKG} install -yA ${DEP}; fi
 .endfor
+	@echo -n ">>> Generating metadata for ${PLUGIN_PKGNAME}-${PLUGIN_PKGVERSION}..."
 	@${MAKE} DESTDIR=${WRKSRC} FLAVOUR=${FLAVOUR} metadata
+	@echo " done"
+	@echo -n ">>> Staging files for ${PLUGIN_PKGNAME}-${PLUGIN_PKGVERSION}..."
 	@${MAKE} DESTDIR=${WRKSRC} FLAVOUR=${FLAVOUR} install
+	@echo " done"
+	@echo ">>> Packaging files for ${PLUGIN_PKGNAME}-${PLUGIN_PKGVERSION}:"
 	@${PKG} create -v -m ${WRKSRC} -r ${WRKSRC} \
 	    -p ${WRKSRC}/plist -o ${PKGDIR}
 
 upgrade-check: check
-	@if ! ${PKG} info ${PLUGIN_PKGNAME} > /dev/null; then \
-		echo ">>> Cannot find package.  Please run 'pkg install ${PLUGIN_PKGNAME}'" >&2; \
-		exit 1; \
-	fi
 	@rm -rf ${PKGDIR}
 
 upgrade: upgrade-check package
-	@${PKG} delete -fy ${PLUGIN_PKGNAME}
+.for NAME in ${PLUGIN_PKGNAMES}
+	@if ${PKG} info ${NAME} 2> /dev/null > /dev/null; then \
+		${PKG} delete -fy ${NAME}; \
+	fi
+.endfor
 	@${PKG} add ${PKGDIR}/*.txz
 
 mount: check
@@ -231,20 +254,45 @@ umount: check
 	umount -f "<above>:${.CURDIR}/src"
 
 clean: check
-	@git reset -q . && git checkout -f . && git clean -xdqf .
+	@if [ -d ${.CURDIR}/src ]; then \
+	    git reset -q ${.CURDIR}/src && \
+	    git checkout -f ${.CURDIR}/src && \
+	    git clean -xdqf ${.CURDIR}/src; \
+	fi
+	@rm -rf ${.CURDIR}/work
 
-lint: check
-	find ${.CURDIR}/src \
+lint-desc: check
+	@if [ ! -f ${.CURDIR}/${PLUGIN_DESC} ]; then \
+		echo ">>> Missing ${PLUGIN_DESC}"; exit 1; \
+	fi
+
+lint-shell:
+	@find ${.CURDIR}/src \
 	    -name "*.sh" -type f -print0 | xargs -0 -n1 sh -n
-	find ${.CURDIR}/src \
+
+lint-xml:
+	@find ${.CURDIR}/src \
 	    -name "*.xml" -type f -print0 | xargs -0 -n1 xmllint --noout
-	find ${.CURDIR}/src \
+
+lint-exec: check
+.for DIR in ${.CURDIR}/src/opnsense/scripts ${.CURDIR}/src/etc/rc.d
+.if exists(${DIR})
+	@find ${DIR} -type f ! -name "*.xml" -print0 | \
+	    xargs -0 -t -n1 test -x || \
+	    (echo "Missing executable permission in ${DIR}"; exit 1)
+.endif
+.endfor
+
+lint-php: check
+	@find ${.CURDIR}/src \
 	    ! -name "*.xml" ! -name "*.xml.sample" ! -name "*.eot" \
 	    ! -name "*.svg" ! -name "*.woff" ! -name "*.woff2" \
 	    ! -name "*.otf" ! -name "*.png" ! -name "*.js" \
 	    ! -name "*.scss" ! -name "*.py" ! -name "*.ttf" \
 	    ! -name "*.tgz" ! -name "*.xml.dist" ! -name "*.sh" \
 	    -type f -print0 | xargs -0 -n1 php -l
+
+lint: lint-desc lint-shell lint-xml lint-exec lint-php
 
 sweep: check
 	find ${.CURDIR}/src -type f -name "*.map" -print0 | \
@@ -259,12 +307,17 @@ sweep: check
 	find ${.CURDIR} -type f -depth 1 -print0 | \
 	    xargs -0 -n1 ${.CURDIR}/../../Scripts/cleanfile
 
+STYLEDIRS?=	src/etc/inc/plugins.inc.d src/opnsense
+
 style: check
 	@: > ${.CURDIR}/.style.out
-	@if [ -d ${.CURDIR}/src ]; then \
-	    (phpcs --standard=${.CURDIR}/../../ruleset.xml \
-	    ${.CURDIR}/src || true) > ${.CURDIR}/.style.out; \
+.for STYLEDIR in ${STYLEDIRS}
+	@if [ -d ${.CURDIR}/${STYLEDIR} ]; then \
+		(phpcs --standard=${.CURDIR}/../../ruleset.xml \
+		    ${.CURDIR}/${STYLEDIR} || true) > \
+		    ${.CURDIR}/.style.out; \
 	fi
+.endfor
 	@echo -n "Total number of style warnings: "
 	@grep '| WARNING' ${.CURDIR}/.style.out | wc -l
 	@echo -n "Total number of style errors:   "
@@ -273,9 +326,23 @@ style: check
 	@rm ${.CURDIR}/.style.out
 
 style-fix: check
+.for STYLEDIR in ${STYLEDIRS}
+	@if [ -d ${.CURDIR}/${STYLEDIR} ]; then \
+		phpcbf --standard=${.CURDIR}/../../ruleset.xml \
+		    ${.CURDIR}/${STYLEDIR} || true; \
+	fi
+.endfor
+
+style-python: check
 	@if [ -d ${.CURDIR}/src ]; then \
-	    phpcbf --standard=${.CURDIR}/../../ruleset.xml \
-	    ${.CURDIR}/src || true; \
+		pycodestyle --ignore=E501 ${.CURDIR}/src || true; \
+	fi
+
+test: check
+	@if [ -d ${.CURDIR}/src/opnsense/mvc/tests ]; then \
+		cd /usr/local/opnsense/mvc/tests && \
+		    phpunit --configuration PHPunit.xml \
+		    ${.CURDIR}/src/opnsense/mvc/tests; \
 	fi
 
 .PHONY:	check

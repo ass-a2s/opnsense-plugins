@@ -9,7 +9,6 @@
         <id>antivirus.scanfiletypes</id>
         <label>Scan for filetypes</label>
         <type>select_multiple</type>
-		<style>tokenize</style>
         <help>Choose for which file types to scan, if unsure select all.</help>
     </field>
     <field>
@@ -20,7 +19,7 @@
     </field>
     <field>
         <id>antivirus.startsendpercentdataafter</id>
-        <label>Start send pecerantage data</label>
+        <label>Start send percentage data</label>
         <type>text</type>
         <help>Only if the object is bigger than size then the percentage of data which defined by SendPercentData sent by the c-icap server before receiving the complete body of request.</help>
     </field>

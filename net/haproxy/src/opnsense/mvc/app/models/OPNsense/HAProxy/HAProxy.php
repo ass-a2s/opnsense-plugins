@@ -46,7 +46,7 @@ class HAProxy extends BaseModel
     {
         if ((string)$this->general->enabled === "1") {
             if ($checkFrontends === true) {
-                foreach ($this->frontends->frontend->__items as $frontend) {
+                foreach ($this->frontends->frontend->iterateItems() as $frontend) {
                     if ((string)$frontend->enabled === "1") {
                         return true; // Found a active frontend
                     }
@@ -65,7 +65,7 @@ class HAProxy extends BaseModel
      */
     public function getByFrontendID($uuid)
     {
-        foreach ($this->frontends->frontend->__items as $frontend) {
+        foreach ($this->frontends->frontend->iterateItems() as $frontend) {
             if ((string)$uuid === (string)$frontend->getAttributes()["uuid"]) {
                 return $frontend;
             }
@@ -80,7 +80,7 @@ class HAProxy extends BaseModel
      */
     public function getByBackendID($uuid)
     {
-        foreach ($this->backends->backend->__items as $backend) {
+        foreach ($this->backends->backend->iterateItems() as $backend) {
             if ((string)$uuid === (string)$backend->getAttributes()["uuid"]) {
                 return $backend;
             }
@@ -95,7 +95,7 @@ class HAProxy extends BaseModel
      */
     public function getByServerID($uuid)
     {
-        foreach ($this->servers->server->__items as $server) {
+        foreach ($this->servers->server->iterateItems() as $server) {
             if ((string)$uuid === (string)$server->getAttributes()["uuid"]) {
                 return $server;
             }
@@ -110,7 +110,7 @@ class HAProxy extends BaseModel
      */
     public function getByActionID($uuid)
     {
-        foreach ($this->actions->action->__items as $action) {
+        foreach ($this->actions->action->iterateItems() as $action) {
             if ((string)$uuid === (string)$action->getAttributes()["uuid"]) {
                 return $action;
             }
@@ -125,7 +125,7 @@ class HAProxy extends BaseModel
      */
     public function getByAclID($uuid)
     {
-        foreach ($this->acls->acl->__items as $acl) {
+        foreach ($this->acls->acl->iterateItems() as $acl) {
             if ((string)$uuid === (string)$acl->getAttributes()["uuid"]) {
                 return $acl;
             }
@@ -139,12 +139,10 @@ class HAProxy extends BaseModel
      * @param string $description
      * @param string $expression
      * @param string $negate
-     * @param string $value
-     * @param string $urlparam
-     * @param string $querybackend
+     * @param hash $parameters
      * @return string
      */
-    public function newAcl($name, $description = "", $expression, $negate = "0", $value, $urlparam = "", $queryBackend = "")
+    public function newAcl($name, $description = "", $expression, $negate = "0", $parameters = array())
     {
         $acl = $this->acls->acl->Add();
         $uuid = $acl->getAttributes()['uuid'];
@@ -152,9 +150,9 @@ class HAProxy extends BaseModel
         $acl->description = $description;
         $acl->expression = $expression;
         $acl->negate = $negate;
-        $acl->value = $value;
-        $acl->urlparam = $urlparam;
-        $acl->queryBackend = $queryBackend;
+        foreach ($parameters as $key => $value) {
+            $acl->$key = $value;
+        }
         return $uuid;
     }
 
@@ -173,7 +171,7 @@ class HAProxy extends BaseModel
      * @param string $actionValue
      * @return string
      */
-    public function newAction($name, $description = "", $testType, $linkedAcls = "", $operator = "and", $type, $useBackend = "", $useServer = "", $actionName, $actionFind, $actionValue)
+    public function newAction($name, $description = "", $testType, $linkedAcls = "", $operator = "and", $type, $parameters = array())
     {
         $action = $this->actions->action->Add();
         $uuid = $action->getAttributes()['uuid'];
@@ -183,11 +181,9 @@ class HAProxy extends BaseModel
         $action->linkedAcls = $linkedAcls;
         $action->operator = $operator;
         $action->type = $type;
-        $action->useBackend = $useBackend;
-        $action->useServer = $useServer;
-        $action->actionName = $actionName;
-        $action->actionFind = $actionFind;
-        $action->actionValue = $actionValue;
+        foreach ($parameters as $key => $value) {
+            $action->$key = $value;
+        }
         return $uuid;
     }
 
@@ -251,7 +247,6 @@ class HAProxy extends BaseModel
      */
     public function linkAclToAction($acl_uuid, $action_uuid, $replace = false)
     {
-        //$mdl = new HAProxy();
         // ACL must exist
         $acl = $this->getByAclID($acl_uuid);
         if ((string)$acl === false) {

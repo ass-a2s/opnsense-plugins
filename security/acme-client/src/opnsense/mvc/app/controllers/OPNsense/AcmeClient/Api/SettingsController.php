@@ -42,8 +42,8 @@ use \OPNsense\AcmeClient\AcmeClient;
  */
 class SettingsController extends ApiMutableModelControllerBase
 {
-    static protected $internalModelName = 'acmeclient';
-    static protected $internalModelClass = '\OPNsense\AcmeClient\AcmeClient';
+    protected static $internalModelName = 'acmeclient';
+    protected static $internalModelClass = '\OPNsense\AcmeClient\AcmeClient';
 
     /**
      * create new cron job or return already available one
@@ -126,7 +126,7 @@ class SettingsController extends ApiMutableModelControllerBase
 
             // Check if the required plugin is installed
             if ((string)$mdlAcme->isPluginInstalled('haproxy') != "1") {
-                $this->getLogger()->error("LE check: HAProxy plugin is NOT installed, skipping integration");
+                $this->getLogger()->error("AcmeClient: HAProxy plugin is NOT installed, skipping integration");
                 return($result);
             }
 
@@ -149,7 +149,7 @@ class SettingsController extends ApiMutableModelControllerBase
                     $integration_found = true; // We found something.
                     // Make sure the item was not deleted.
                     if ($mdlHAProxy->getByAclID($acl_ref) === null) {
-                        $this->getLogger()->error("LE check: HAProxy integration is incomplete: ACL item not found");
+                        $this->getLogger()->error("AcmeClient: HAProxy integration is incomplete: ACL item not found");
                         $integration_complete = false; // Item is broken.
                     }
                 } else {
@@ -162,7 +162,7 @@ class SettingsController extends ApiMutableModelControllerBase
                     $integration_found = true; // We found something.
                     // Make sure the item was not deleted.
                     if ($mdlHAProxy->getByActionID($action_ref) === null) {
-                        $this->getLogger()->error("LE check: HAProxy integration is incomplete: action item not found");
+                        $this->getLogger()->error("AcmeClient: HAProxy integration is incomplete: action item not found");
                         $integration_complete = false; // Item is broken.
                     }
                 } else {
@@ -175,7 +175,7 @@ class SettingsController extends ApiMutableModelControllerBase
                     $integration_found = true; // We found something.
                     // Make sure the item was not deleted.
                     if ($mdlHAProxy->getByServerID($server_ref) === null) {
-                        $this->getLogger()->error("LE check: HAProxy integration is incomplete: server item not found");
+                        $this->getLogger()->error("AcmeClient: HAProxy integration is incomplete: server item not found");
                         $integration_complete = false; // Item is broken.
                     }
                 } else {
@@ -188,7 +188,7 @@ class SettingsController extends ApiMutableModelControllerBase
                     $integration_found = true; // We found something.
                     // Make sure the item was not deleted.
                     if ($mdlHAProxy->getByBackendID($backend_ref) === null) {
-                        $this->getLogger()->error("LE check: HAProxy integration is incomplete: backend item not found");
+                        $this->getLogger()->error("AcmeClient: HAProxy integration is incomplete: backend item not found");
                         $integration_complete = false; // Item is broken.
                     }
                 } else {
@@ -197,40 +197,42 @@ class SettingsController extends ApiMutableModelControllerBase
 
                 // Check if HAProxy integration is already complete.
                 if ($integration_found and $integration_complete) {
-                    $this->getLogger()->error("LE check: HAProxy integration is complete");
+                    $this->getLogger()->error("AcmeClient: HAProxy integration is complete");
                 } else {
                     $integration_changes = true;
-                    // Check if we need to remove relics of incomplete HAProxy integration.
-                    // NOTE: We try to automatically repair a broken HAProxy integration,
-                    //       although the user may have deleted some items intentionally.
-                    //       As long as the HAProxy integration is enabled we assume that
-                    //       this is an error that should *automatically* be fixed.
+                    /**
+                     * Check if we need to remove relics of incomplete HAProxy integration.
+                     * NOTE: We try to automatically repair a broken HAProxy integration,
+                     *       although the user may have deleted some items intentionally.
+                     *       As long as the HAProxy integration is enabled we assume that
+                     *       this is an error that should *automatically* be fixed.
+                     */
                     if ($integration_found and !$integration_complete) {
                         // NOTE: We ignore the return value of the del() calls
                         //       too keep this as simple as possible.
-                        $this->getLogger()->error("LE check: HAProxy integration is incomplete, removing relics");
+                        $this->getLogger()->error("AcmeClient: HAProxy integration is incomplete, removing relics");
                         // Remove obsolete backend item
                         if (!empty($backend_ref)) {
                             if ($mdlHAProxy->backends->backend->del($backend_ref)) {
-                                $this->getLogger()->error("LE HAProxy integration: deleted obsolete backend item");
+                                $this->getLogger()->error("AcmeClient: HAProxy integration: deleted obsolete backend item");
                             }
                         }
                         // Remove obsolete server item
                         if (!empty($server_ref)) {
                             if ($mdlHAProxy->servers->server->del($server_ref)) {
-                                $this->getLogger()->error("LE HAProxy integration: deleted obsolete server item");
+                                $this->getLogger()->error("AcmeClient: HAProxy integration: deleted obsolete server item");
                             }
                         }
                         // Remove obsolete action item
                         if (!empty($action_ref)) {
                             if ($mdlHAProxy->actions->action->del($action_ref)) {
-                                $this->getLogger()->error("LE HAProxy integration: deleted obsolete action item");
+                                $this->getLogger()->error("AcmeClient: HAProxy integration: deleted obsolete action item");
                             }
                         }
                         // Remove obsolete ACL item
                         if (!empty($acl_ref)) {
                             if ($mdlHAProxy->acls->acl->del($acl_ref)) {
-                                $this->getLogger()->error("LE HAProxy integration: deleted obsolete ACL item");
+                                $this->getLogger()->error("AcmeClient: HAProxy integration: deleted obsolete ACL item");
                             }
                         }
                         // TODO: Remove obsolete ACL link from frontends
@@ -239,7 +241,7 @@ class SettingsController extends ApiMutableModelControllerBase
                         //       will be overwritten later anyway.
                         $result['result'] = "repaired";
                     } else {
-                        $this->getLogger()->error("LE check: HAProxy integration initializing");
+                        $this->getLogger()->error("AcmeClient: HAProxy integration initializing");
                         $result['result'] = "new";
                     }
 
@@ -250,11 +252,10 @@ class SettingsController extends ApiMutableModelControllerBase
                     $acl_uuid = $mdlHAProxy->newAcl(
                         "find_acme_challenge",
                         "Added by Let's Encrypt plugin",
-                        "path_starts_with",
+                        "path_beg",
                         "0",
-                        "/.well-known/acme-challenge/"
+                        array("path_beg" => "/.well-known/acme-challenge/")
                     );
-                    //$this->getLogger()->error("LE acl: ${acl_uuid}");
 
                     // Add a new HAProxy backend
                     $backend_uuid = $mdlHAProxy->newBackend(
@@ -266,7 +267,6 @@ class SettingsController extends ApiMutableModelControllerBase
                         "",
                         ""
                     );
-                    //$this->getLogger()->error("LE backend: ${backend_uuid}");
 
                     // Add a new HAProxy action
                     $action_uuid = $mdlHAProxy->newAction(
@@ -277,13 +277,9 @@ class SettingsController extends ApiMutableModelControllerBase
                         "and",
                         "use_backend",
                         // Use the new backend uuid in field "useBackend"
-                        $backend_uuid,
-                        "",
-                        "",
-                        "",
-                        ""
+                        array("use_backend" => $backend_uuid)
                     );
-                    //$this->getLogger()->error("LE action: ${action_uuid}");
+
                     // NOTE: This action is linked to frontends.
                     $action_ref = $action_uuid;
 
@@ -298,7 +294,6 @@ class SettingsController extends ApiMutableModelControllerBase
                         "0",
                         ""
                     );
-                    //$this->getLogger()->error("LE server: ${server_uuid}");
 
                     // Update hidden fields to signal that HAProxy integration is complete.
                     $mdlAcme->settings->haproxyAclRef = $acl_uuid;
@@ -308,20 +303,17 @@ class SettingsController extends ApiMutableModelControllerBase
 
                     // Link new ACL to HAProxy action
                     $link_acl_result = $mdlHAProxy->linkAclToAction($acl_uuid, $action_uuid);
-                    //$this->getLogger()->error("LE link acl result: ${link_acl_result}");
 
                     // Link new server to HAProxy backend
                     $link_server_result = $mdlHAProxy->linkServerToBackend($server_uuid, $backend_uuid);
-                    //$this->getLogger()->error("LE link server result: ${link_server_result}");
                 }
 
                 // Ensure HAProxy frontend additions have been applied.
-                foreach ($mdlAcme->getNodeByReference('validations.validation')->__items as $validation) {
+                foreach ($mdlAcme->getNodeByReference('validations.validation')->iterateItems() as $validation) {
                     // Find all (enabled) validation methods with HAProxy integration.
                     if ((string)$validation->enabled == "1" and
                         (string)$validation->method == "http01" and
                         (string)$validation->http_service == "haproxy") {
-                        //$this->getLogger()->error("LE HAProxy DEBUG: checking validation method: " . (string)$validation->name);
                         // Check if HAProxy frontends were specified.
                         if (empty((string)$validation->http_haproxyFrontends)) {
                             // Skip item, no HAProxy frontends were specified.
@@ -330,7 +322,6 @@ class SettingsController extends ApiMutableModelControllerBase
                         $_frontends = explode(',', $validation->http_haproxyFrontends);
                         // Walk through all linked frontends.
                         foreach ($_frontends as $_frontend) {
-                            //$this->getLogger()->error("LE HAProxy DEBUG: checking frontend: ${_frontend}");
                             $frontend = $mdlHAProxy->getByFrontendID($_frontend);
                             // Make sure the frontend was found in config.
                             if (!is_null($frontend) && !empty((string)$frontend->id)) {
@@ -349,7 +340,7 @@ class SettingsController extends ApiMutableModelControllerBase
                                     }
                                     // Add modified list of linked Actions to frontend.
                                     $frontend->linkedActions = $_actions;
-                                    $this->getLogger()->error("LE HAProxy integration: updating frontend ${_frontend}");
+                                    $this->getLogger()->error("AcmeClient: HAProxy integration: updating frontend ${_frontend}");
                                     // We need to write changes to config.
                                     $integration_changes = true;
                                 }
@@ -360,7 +351,7 @@ class SettingsController extends ApiMutableModelControllerBase
 
                 // Changes made to configuration?
                 if ($integration_changes === true) {
-                    $this->getLogger()->error("LE HAProxy integration: saving updated configuration");
+                    $this->getLogger()->error("AcmeClient: HAProxy integration: saving updated configuration");
                     // Save updated configuration.
                     // Do NOT validate because the current in-memory model doesn't know about the
                     // HAProxy items just created.

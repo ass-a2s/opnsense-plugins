@@ -59,13 +59,13 @@
     </field>
     <field>
         <id>general.scanpe</id>
-        <label>Scan portable executeable</label>
+        <label>Scan portable executable</label>
         <type>checkbox</type>
         <help>PE stands for Portable Executable - it's an executable file format used in all 32 and 64-bit versions of Windows operating systems.</help>
     </field>
     <field>
         <id>general.scanelf</id>
-        <label>Scan executeable and linking format</label>
+        <label>Scan executable and linking format</label>
         <type>checkbox</type>
         <help>Executable and Linking Format is a standard format for UN*X executables.</help>
     </field>
@@ -176,5 +176,29 @@
         <label>Freshclam connect timeout</label>
         <type>text</type>
         <help>Timeout in seconds when connecting to database server.</help>
+    </field>
+    <field>
+        <id>general.fc_malwareexpert</id>
+        <label>Add Malware Expert Signatures</label>
+        <type>checkbox</type>
+        <help>Activate third party signatures from Malware Expert. Use at your own risk.</help>
+    </field>
+    <field>
+        <id>general.fc_blurl</id>
+        <label>Add BLURL Signatures</label>
+        <type>checkbox</type>
+        <help>Activate third party signatures from BLURL. Use at your own risk.</help>
+    </field>
+    <field>
+        <id>general.fc_jurlbla</id>
+        <label>Add BLURL Signatures</label>
+        <type>checkbox</type>
+        <help>Activate third party signatures from Sanesecurtiy JURLBLA. Use at your own risk.</help>
+    </field>
+    <field>
+        <id>general.fc_bofhland</id>
+        <label>Add BOFHLand Signatures</label>
+        <type>checkbox</type>
+        <help>Activate third party signatures from Sanesecurtiy BOFHLand. Use at your own risk.</help>
     </field>
 </form>

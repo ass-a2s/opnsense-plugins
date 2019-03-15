@@ -1,0 +1,97 @@
+<model>
+  <mount>//OPNsense/Nut</mount>
+  <description>Network UPS Tools</description>
+  <version>1.0.2</version>
+  <items>
+    <general>
+      <enable type="BooleanField">
+        <default>0</default>
+        <Required>Y</Required>
+      </enable>
+      <mode type="OptionField">
+        <default>standalone</default>
+        <Required>Y</Required>
+        <OptionValues>
+          <standalone>standalone</standalone>
+          <netclient>netclient</netclient>
+        </OptionValues>
+      </mode>
+      <name type="TextField">
+        <default>UPSName</default>
+        <Required>Y</Required>
+      </name>
+      <listen type="CSVListField">
+        <default>127.0.0.1,::1</default>
+        <Required>Y</Required>
+      </listen>
+    </general>
+
+    <account>
+      <admin_password type="TextField">
+        <Required>Y</Required>
+        <default>Password</default>
+      </admin_password>
+      <mon_password type="TextField">
+        <Required>Y</Required>
+        <default>Password</default>
+      </mon_password>
+    </account>
+
+    <usbhid>
+      <enable type="BooleanField">
+        <Required>Y</Required>
+        <default>0</default>
+      </enable>
+      <args type="CSVListField">
+        <default>port=auto</default>
+        <Required>N</Required>
+      </args>
+    </usbhid>
+    <apcsmart>
+      <enable type="BooleanField">
+        <Required>Y</Required>
+        <default>0</default>
+      </enable>
+      <args type="CSVListField">
+        <default>port=auto</default>
+        <Required>N</Required>
+      </args>
+    </apcsmart>
+    <blazerusb>
+      <enable type="BooleanField">
+        <Required>Y</Required>
+        <default>0</default>
+      </enable>
+      <args type="CSVListField">
+        <default>port=auto</default>
+        <Required>N</Required>
+      </args>
+    </blazerusb>
+    <blazerser>
+      <enable type="BooleanField">
+        <Required>Y</Required>
+        <default>0</default>
+      </enable>
+      <args type="CSVListField">
+        <default>port=auto</default>
+        <Required>N</Required>
+      </args>
+    </blazerser>
+    <netclient>
+      <enable type="BooleanField">
+        <Required>Y</Required>
+        <default>0</default>
+      </enable>
+      <address type="HostnameField">
+        <default></default>
+        <Required>N</Required>
+      </address>
+      <user type="TextField">
+        <Required>N</Required>
+      </user>
+      <password type="TextField">
+        <Required>N</Required>
+      </password>
+    </netclient>
+  </items>
+</model>

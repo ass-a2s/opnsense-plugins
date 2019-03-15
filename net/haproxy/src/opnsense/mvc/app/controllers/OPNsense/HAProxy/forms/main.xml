@@ -1,10 +1,6 @@
 <form>
-    <tab id="haproxy-general" description="General Settings">
+    <tab id="haproxy-general" description="Settings">
         <subtab id="haproxy-general-settings" description="Service Settings">
-            <field>
-                <label>NOTE: You need to configure frontends, backends and servers before enabling HAProxy.</label>
-                <type>info</type>
-            </field>
             <field>
                 <id>haproxy.general.enabled</id>
                 <label>Enable HAProxy</label>
@@ -13,9 +9,73 @@
             </field>
             <field>
                 <id>haproxy.general.gracefulStop</id>
-                <label>Graceful Stop</label>
+                <label>Graceful stop</label>
                 <type>checkbox</type>
                 <help><![CDATA[Enable HAProxy's graceful stop mode. In this mode HAProxy will continue to process existing connections until they close. Note that this may severely slow down HAProxy's shutdown, depending on the configured timeout values. If graceful stop mode is not enabled, HAProxy will use the hard stop mode where it immediately quits and all established connections are closed. Hard stop mode is recommended.]]></help>
+            </field>
+            <field>
+                <id>haproxy.general.seamlessReload</id>
+                <label>Seamless reload</label>
+                <type>checkbox</type>
+                <help><![CDATA[HAProxy will handle service restarts in a way that no connections are dropped. This is the best restart mode, because it has no impact on user experience. That being said, there might be edge cases where seamless reloads lead to unexpected behaviour.]]></help>
+            </field>
+            <field>
+                <id>haproxy.general.showIntro</id>
+                <label>Show introduction pages</label>
+                <type>checkbox</type>
+                <help><![CDATA[Uncheck to hide all additional introduction pages. Requires a manual page reload for the change to take effect.]]></help>
+            </field>
+        </subtab>
+        <subtab id="haproxy-general-peers" description="Peers / Session Sync">
+            <field>
+                <id>haproxy.general.peers.enabled</id>
+                <label>Enable peers</label>
+                <type>checkbox</type>
+                <help><![CDATA[Enable or disable HAProxy peers. This will propagate entries of any data-types in stick-tables between several HAProxy instances over TCP connections in a multi-master fashion.]]></help>
+            </field>
+            <field>
+                <label>Peer 1</label>
+                <type>header</type>
+            </field>
+            <field>
+                <id>haproxy.general.peers.name1</id>
+                <label>Peer name (FQDN)</label>
+                <type>text</type>
+                <help><![CDATA[The name of the peer. This is usually the full hostname to make it possible for HAProxy to recognize the local peer. If HAProxy is unable to find the local peer it will fail to start.]]></help>
+            </field>
+            <field>
+                <id>haproxy.general.peers.listen1</id>
+                <label>Listen address (IP)</label>
+                <type>text</type>
+                <help><![CDATA[The listen address of the local peer or the address of the remote peer.]]></help>
+            </field>
+            <field>
+                <id>haproxy.general.peers.port1</id>
+                <label>TCP Port</label>
+                <type>text</type>
+                <help><![CDATA[The TCP port that should be used for connections to this peer. It must not be used by any other service.]]></help>
+            </field>
+            <field>
+                <label>Peer 2</label>
+                <type>header</type>
+            </field>
+            <field>
+                <id>haproxy.general.peers.name2</id>
+                <label>Peer name (FQDN)</label>
+                <type>text</type>
+                <help><![CDATA[The name of the peer. This is usually the full hostname to make it possible for HAProxy to recognize the local peer. If HAProxy is unable to find the local peer it will fail to start.]]></help>
+            </field>
+            <field>
+                <id>haproxy.general.peers.listen2</id>
+                <label>Listen address (IP)</label>
+                <type>text</type>
+                <help><![CDATA[The listen address of the local peer or the address of the remote peer.]]></help>
+            </field>
+            <field>
+                <id>haproxy.general.peers.port2</id>
+                <label>TCP Port</label>
+                <type>text</type>
+                <help><![CDATA[The TCP port that should be used for connections to this peer. It must not be used by any other service.]]></help>
             </field>
         </subtab>
         <subtab id="haproxy-general-global" description="Global Parameters">
@@ -36,6 +96,12 @@
                 <type>text</type>
                 <help><![CDATA[Number of HAProxy processes to start.<br/><div class="text-info"><b>NOTE:</b> You may experience random issues in multi-process mode. For more information about the "nbproc" option please see the HAProxy Documentation.</div>]]></help>
                 <advanced>true</advanced>
+            </field>
+            <field>
+                <id>haproxy.general.tuning.nbthread</id>
+                <label>HAProxy threads</label>
+                <type>text</type>
+                <help><![CDATA[Number of threads to create for each HAProxy process.]]></help>
             </field>
             <field>
                 <id>haproxy.general.tuning.maxConnections</id>
@@ -90,10 +156,34 @@
                 <help><![CDATA[These lines will be added to the global settings of to the HAProxy configuration file.<br/><div class="text-info"><b>NOTE:</b> The syntax will not be checked, use at your own risk!</div>]]></help>
                 <advanced>true</advanced>
             </field>
+            <field>
+                <label>SSL default settings</label>
+                <type>header</type>
+            </field>
+            <field>
+                <id>haproxy.general.tuning.ssl_defaultsEnabled</id>
+                <label>Enabled</label>
+                <type>checkbox</type>
+                <help><![CDATA[Enable global SSL default values.]]></help>
+            </field>
+            <field>
+                <id>haproxy.general.tuning.ssl_bindOptions</id>
+                <label>Bind options</label>
+                <type>select_multiple</type>
+                <style>tokenize</style>
+                <allownew>true</allownew>
+                <help><![CDATA[Used to enforce or disable certain SSL options.]]></help>
+            </field>
+            <field>
+                <id>haproxy.general.tuning.ssl_cipherList</id>
+                <label>Cipher List</label>
+                <type>text</type>
+                <help><![CDATA[It sets the default string describing the list of cipher algorithms ("cipher suite") that are negotiated during the SSL/TLS handshake.]]></help>
+            </field>
         </subtab>
         <subtab id="haproxy-general-defaults" description="Default Parameters">
             <field>
-                <label>NOTE: Define default parameters for ALL Frontends, Backends and Servers here. They may still be overriden elsewhere.</label>
+                <label>NOTE: Define default parameters for ALL Public Services, Backend Pools and Servers here. They may still be overriden elsewhere.</label>
                 <type>info</type>
             </field>
             <field>
@@ -208,13 +298,18 @@
                 <type>checkbox</type>
             </field>
             <field>
-                <id>haproxy.general.stats.users</id>
-                <label>Stats users</label>
+                <id>haproxy.general.stats.allowedUsers</id>
+                <label>Allowed Users</label>
                 <type>select_multiple</type>
-                <style>tokenize</style>
                 <allownew>true</allownew>
-                <help><![CDATA[Grant access to HAProxy statistics page. Please provide both user and password in clear text separated by a ':', i.e. john:secret123 or jdoe:anonymous. Use TAB key to complete adding a user.]]></help>
-                <hint>Enter user:password here. Finish with TAB.</hint>
+                <hint>Type username or choose from list.</hint>
+            </field>
+            <field>
+                <id>haproxy.general.stats.allowedGroups</id>
+                <label>Allowed Groups</label>
+                <type>select_multiple</type>
+                <allownew>true</allownew>
+                <hint>Type group or choose from list.</hint>
             </field>
             <field>
                 <id>haproxy.general.stats.customOptions</id>
@@ -225,6 +320,4 @@
             </field>
         </subtab>
     </tab>
-
-    <activetab>haproxy-general-settings</activetab>
 </form>
