@@ -102,11 +102,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     do_input_validation($pconfig, $reqdfields, $reqdfieldsn, $input_errors);
 
     if (isset($pconfig['host']) && in_array('host', $reqdfields)) {
-        /* Namecheap can have a @. or *. in hostname */
-        if ($pconfig['type'] == "namecheap" && (substr($pconfig['host'], 0, 2) == '@.' || substr($pconfig['host'], 0, 2) == '*.')) {
-            $host_to_check = substr($pconfig['host'], 2);
-        } else {
-            $host_to_check = $pconfig['host'];
+        $host_to_check = $pconfig['host'];
+
+        switch ($pconfig['type']) {
+            case 'googledomains':
+            case 'namecheap':
+                $host_to_check = preg_replace('/^[@*]\./', '', $host_to_check);
+                break;
+            default:
+                break;
         }
 
         if (!is_domain($host_to_check)) {
@@ -243,7 +247,6 @@ include("head.inc");
                        <select name="interface" class="selectpicker" id="interface">
 <?php
                         $iflist = get_configured_interface_with_descr();
-                        $iflist = array_merge($iflist, return_gateway_groups_array());
                         foreach ($iflist as $if => $ifdesc):?>
                           <option value="<?= $if ?>" <?=$pconfig['interface'] == $if ? 'selected="selected"' : '';?>>
                             <?= is_array($ifdesc) ? $if : htmlspecialchars($ifdesc) ?>
@@ -260,7 +263,6 @@ include("head.inc");
                       <select name="requestif" class="selectpicker" id="requestif">
 <?php
                        $iflist = get_configured_interface_with_descr();
-                       $iflist = array_merge($iflist, return_gateway_groups_array());
                        foreach ($iflist as $if => $ifdesc):?>
                          <option value="<?= $if ?>" <?= $pconfig['requestif'] == $if ? 'selected="selected"' : '' ?>>
                            <?= is_array($ifdesc) ? $if : htmlspecialchars($ifdesc) ?>
